@@ -9,14 +9,29 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import api from '../../../lib/api';
 import { extractHostname, isString, isValidWebUrl } from '../../../utils';
 
-type apiData = {
-  success: boolean,
-  result?: any,
-  error?: any,
+interface ApiData {
+  success: boolean
+  result?: {
+    siteData?: siteData,
+    imageSearch?: string,
+    imageResults: Array<string>
+  }
+  error?: any
   errors?: Array<any>
 }
 
-const handler = async (req: NextApiRequest, res: NextApiResponse<apiData>) => {
+interface siteData {
+  url: string
+  title: string
+  favicon?: string
+  description?: string
+  image?: string
+  author?: string
+  siteName?: string
+  largestImage?: string
+}
+
+const handler = async (req: NextApiRequest, res: NextApiResponse<ApiData>) => {
   const { url } = req.query;
   if (isString(url)) {
     const targetUrl = decodeURIComponent(Buffer.from(url, 'base64').toString());
@@ -24,16 +39,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<apiData>) => {
       switch (req.method) {
         case 'GET':
 
-          // Get images for domain name
-          let domainNameImageUrls:Array<string> = [];
-          let imageSearchString:string = "";
-          let errors:Array<any> = [];
+          // Get search images for domain name
+          let domainNameImageUrls: Array<string> = [];
+          let imageSearchString = "";
+          let errors: Array<any> = [];
           const rootDomain = psl.get(extractHostname(targetUrl));
           if (rootDomain) {
             const parsed = psl.parse(rootDomain);
             if (!parsed.error) {
               if (parsed.sld) {
-                imageSearchString = parsed.sld;
+                imageSearchString = parsed.sld; // domain name
                 const imageSearch = await getBingImageSearch(imageSearchString);
                 if (imageSearch.results) {
                   domainNameImageUrls = imageSearch.results.map((imageResult: { contentUrl: string; }) => imageResult.contentUrl)
@@ -41,7 +56,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<apiData>) => {
                   errors.push(imageSearch.error);
                 }
               } else {
-                throw Error("sld not found");
+                throw Error("Second level domain not found");
               }
             } else {
               throw Error(JSON.stringify(parsed.error));
@@ -50,16 +65,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<apiData>) => {
             throw Error("Root domain not found");
           }
         
-          // Get images specific to given url/link
-          const tags = await scrapeMetaTags(targetUrl);
+          // Scraped given url/link to get site data
+          const scrapedSite = await scrapeSite(targetUrl);
         
-          if (tags.data) {
-            if (/\S/.test(tags.data.title)) {
-              imageSearchString = getImageSearchString(tags.data.title, tags.data.url, tags.data.siteName);
+          if (scrapedSite.data) {
+            if (/\S/.test(scrapedSite.data.title)) {
+              // Get search images specific to given url/link
+              imageSearchString = getImageSearchString(scrapedSite.data.title, scrapedSite.data.url, scrapedSite.data.siteName);
               const imageSearch = await getBingImageSearch(imageSearchString);
               if (imageSearch.results) { 
                 const imageUrls = imageSearch.results.map((imageResult: { contentUrl: string; }) => imageResult.contentUrl);
-                // Add in some of the root domain images
+                // Add in some of the search images for domain name
                 imageUrls.splice(2, 0, domainNameImageUrls[0]);
                 imageUrls.splice(5, 0, domainNameImageUrls[1]);
                 imageUrls.splice(10, 0, domainNameImageUrls[2]);
@@ -67,40 +83,40 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<apiData>) => {
                 imageUrls.splice(20, 0, domainNameImageUrls[4]);
                 return res.status(200).json({
                   result: {
-                    metaTags: tags.data,
+                    siteData: scrapedSite.data,
                     imageSearch: imageSearchString,
                     imageResults: imageUrls
                   },
                   success: true
                 })
               } else {
-                // Fallback to just show root domain images if they exist and any errors
+                // Fallback to just show domain search images if they exist and any errors
                 errors.push(imageSearch.error);
                 return res.status(200).json({
                   errors: errors,
                   success: true,
                   result: {
-                    metaTags: tags.data,
+                    siteData: scrapedSite.data,
                     imageSearch: imageSearchString,
                     imageResults: domainNameImageUrls
                   }
                 });
               }
             } else {
-              // Fallback to just show root domain images if they exist and any errors
+              // Fallback to just show domain search images if they exist and any errors
               return res.status(200).json({
                 errors: errors,
                 success: true,
                 result: {
-                  metaTags: tags.data,
+                  siteData: scrapedSite.data,
                   imageSearch: imageSearchString,
                   imageResults: domainNameImageUrls
                 }
               });
             }
           } else {
-            // Fallback to just show root domain images if they exist and any errors
-            errors.push(tags.errors);
+            // Fallback to just show domain search images if they exist and any errors
+            errors.push(scrapedSite.errors);
             return res.status(200).json({
               errors: errors,
               success: true,
@@ -176,10 +192,11 @@ const getBingImageSearch = async (search: string): Promise<{ results?: Array<any
   }
 }
 
-const scrapeMetaTags = async (url: string) => {
+const scrapeSite = async (url: string) => {
   
   let html: any;
   let errors: Array<any> = [];
+  let tagData: siteData | undefined;
 
   try {
     const res = await api(encodeURI(decodeURI(url))); // Recode URI to avoid Error Request path contains unescaped characters
@@ -200,50 +217,126 @@ const scrapeMetaTags = async (url: string) => {
     errors.push(err);
   }
 
-  // Additional fallback using stealth puppeteer 
-  // For sites such as https://www.fiverr.com/sorich1/fix-bugs-and-build-any-laravel-php-and-vuejs-projects, https://www.netflix.com/gb/title/70136120
-  if (!html) {
+  if (html) {
+    tagData = scrapeMetaTags(url, html);
+    // If no image found try stealth puppeteer with searching for largest image
+    if (tagData.image) {
+      return {
+        data: tagData
+      }
+    } else {
+      try {
+        const scrapedData = await stealthScrapeUrl(url);
+        tagData.largestImage = scrapedData.largestImage;
+        return {
+          data: tagData
+        }
+      } catch (err) {
+        console.log(err);
+        errors.push(err);
+        return {
+          errors: errors
+        }
+      }
+    }
+  } else {
     try {
-      await puppeteer.use(StealthPlugin()).launch().then(async browser => {
-        const page = await browser.newPage();;
-        await page.goto(url, { waitUntil: 'networkidle0' });
-        html = await page.evaluate(() => document.querySelector('*')?.outerHTML);
-        await browser.close();
-      });
+      const scrapedData = await stealthScrapeUrl(url);
+      html = scrapedData.html;
+      tagData = scrapeMetaTags(url, html);
+      tagData.largestImage = scrapedData.largestImage;
+      return {
+        data: tagData
+      }
     } catch (err) {
       console.log(err);
       errors.push(err);
-    }
-  }
-
-  if (html) {
-
-    const $ = cheerio.load(html);
-    
-    const getMetatag = (name: string) =>  
-        $(`meta[name=${name}]`).attr('content') ||  
-        $(`meta[name="og:${name}"]`).attr('content') || 
-        $(`meta[property="og:${name}"]`).attr('content') ||  
-        $(`meta[name="twitter:${name}"]`).attr('content');
-  
-    return {
-      data: {
-        url,
-        title: $('title').first().text(),
-        favicon: $('link[rel="shortcut icon"]').attr('href'),
-        // description: $('meta[name=description]').attr('content'),
-        description: getMetatag('description'),
-        image: getMetatag('image'),
-        author: getMetatag('author'),
-        siteName: getMetatag('site_name')
+      return {
+        errors: errors
       }
     }
-
-  } else {
-    return {
-      errors: errors
-    }
   }
+
+}
+
+// Use cheerio (jQuery like selector for html) to fetch site meta tags
+const scrapeMetaTags = (url: string, html: any) => {
+
+  const $ = cheerio.load(html);
+  
+  const getMetatag = (name: string) =>  
+      $(`meta[name=${name}]`).attr('content') ||  
+      $(`meta[name="og:${name}"]`).attr('content') || 
+      $(`meta[property="og:${name}"]`).attr('content') ||  
+      $(`meta[name="twitter:${name}"]`).attr('content');
+
+  return {
+    url,
+    title: $('title').first().text(),
+    favicon: $('link[rel="shortcut icon"]').attr('href'),
+    // description: $('meta[name=description]').attr('content'),
+    description: getMetatag('description'),
+    image: getMetatag('image'),
+    author: getMetatag('author'),
+    siteName: getMetatag('site_name')
+  }
+
+}
+
+// Additional fallback using stealth puppeteer see "https://github.com/berstend/puppeteer-extra/wiki/Beginner:-I'm-new-to-scraping-and-being-blocked"
+// For sites such as https://www.fiverr.com/sorich1/fix-bugs-and-build-any-laravel-php-and-vuejs-projects, https://www.netflix.com/gb/title/70136120
+const stealthScrapeUrl = async (url: string) => {
+
+  let html;
+  let largestImage;
+
+  await puppeteer.use(StealthPlugin()).launch().then(async browser => {
+
+    const page = await browser.newPage();;
+    await page.goto(url, { waitUntil: 'networkidle0' });
+
+    html = await page.evaluate(() => document.querySelector('*')?.outerHTML);
+
+    // Check through images in site for largest image to use incase site image not found
+    largestImage = await page.evaluate(() => {
+
+      const imageLargest = () => {
+        let best = null;
+        let images = document.getElementsByTagName("img");
+        for (let img of images as any) {
+          if (imageSize(img) > imageSize(best)) {
+            best = img
+          }
+        }
+        return best;
+      }
+
+      const imageSize = (img: HTMLImageElement) => {
+        if (!img) {
+          return 0;
+        }
+        return img.naturalWidth * img.naturalHeight;
+      }
+
+      const imageSrc = (img: HTMLImageElement) => {
+        if (!img) {
+          return null;
+        }
+        return img.src
+      }
+
+      return imageSrc(imageLargest()); 
+
+    });
+
+    await browser.close();
+
+  });
+
+  return {
+    html: html,
+    largestImage: largestImage
+  };
 
 }
 
