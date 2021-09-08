@@ -23,8 +23,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<apiData>) => {
     if (isValidWebUrl(targetUrl)) {
       switch (req.method) {
         case 'GET':
-          // Get images for root domain
-          let rootDomainImageUrls:Array<string> = [];
+
+          // Get images for domain name
+          let domainNameImageUrls:Array<string> = [];
           let imageSearchString:string = "";
           let errors:Array<any> = [];
           const rootDomain = psl.get(extractHostname(targetUrl));
@@ -35,7 +36,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<apiData>) => {
                 imageSearchString = parsed.sld;
                 const imageSearch = await getBingImageSearch(imageSearchString);
                 if (imageSearch.results) {
-                  rootDomainImageUrls = imageSearch.results.map((imageResult: { contentUrl: string; }) => imageResult.contentUrl)
+                  domainNameImageUrls = imageSearch.results.map((imageResult: { contentUrl: string; }) => imageResult.contentUrl)
                 } else {
                   errors.push(imageSearch.error);
                 }
@@ -49,7 +50,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<apiData>) => {
             throw Error("Root domain not found");
           }
         
-          // Get images specific to given url
+          // Get images specific to given url/link
           const tags = await scrapeMetaTags(targetUrl);
         
           if (tags.data) {
@@ -59,11 +60,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<apiData>) => {
               if (imageSearch.results) { 
                 const imageUrls = imageSearch.results.map((imageResult: { contentUrl: string; }) => imageResult.contentUrl);
                 // Add in some of the root domain images
-                imageUrls.splice(2, 0, rootDomainImageUrls[0]);
-                imageUrls.splice(5, 0, rootDomainImageUrls[1]);
-                imageUrls.splice(10, 0, rootDomainImageUrls[2]);
-                imageUrls.splice(15, 0, rootDomainImageUrls[3]);
-                imageUrls.splice(20, 0, rootDomainImageUrls[4]);
+                imageUrls.splice(2, 0, domainNameImageUrls[0]);
+                imageUrls.splice(5, 0, domainNameImageUrls[1]);
+                imageUrls.splice(10, 0, domainNameImageUrls[2]);
+                imageUrls.splice(15, 0, domainNameImageUrls[3]);
+                imageUrls.splice(20, 0, domainNameImageUrls[4]);
                 return res.status(200).json({
                   result: {
                     metaTags: tags.data,
@@ -81,7 +82,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<apiData>) => {
                   result: {
                     metaTags: tags.data,
                     imageSearch: imageSearchString,
-                    imageResults: rootDomainImageUrls
+                    imageResults: domainNameImageUrls
                   }
                 });
               }
@@ -93,7 +94,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<apiData>) => {
                 result: {
                   metaTags: tags.data,
                   imageSearch: imageSearchString,
-                  imageResults: rootDomainImageUrls
+                  imageResults: domainNameImageUrls
                 }
               });
             }
@@ -105,7 +106,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<apiData>) => {
               success: true,
               result: {
                 imageSearch: imageSearchString,
-                imageResults: rootDomainImageUrls
+                imageResults: domainNameImageUrls
               }
             });
           }
