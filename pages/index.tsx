@@ -26,7 +26,7 @@ export default function Home() {
           GET request to <code className={styles.code}>/api/link-preview/[url]</code> <br />
         </p>
         <p style={{textAlign:"center"}}>
-          Requires "url" parameter to be base64 encoded url to fetch link preview for
+          Requires "url" parameter to be base64 encoded url to fetch link preview
         </p>
       </main>
 
