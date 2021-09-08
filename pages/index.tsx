@@ -1,48 +1,78 @@
 import Head from 'next/head'
 import Image from 'next/image'
-import styles from '../styles/Home.module.css'
 
 export default function Home() {
   return (
-    <div className={styles.container} style={{marginLeft:"10px",marginRight:"10px"}}>
+    <div style={{marginLeft:"10px",marginRight:"10px"}}>
       <Head>
         <title>Link Preview</title>
         <meta name="description" content="A simple API site for getting link preview data." />
         <link rel="icon" href="/favicon.ico" />
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css"/>
       </Head>
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="/">Link Preview!</a>
-        </h1>
-        <p className={styles.description}>
-          A simple API site for getting link preview data <br />
-        </p>
-        <p style={{textAlign:"center"}}>
-          Works with multiple fallbacks, such as stealth emulation of a browser + fetching images by search. <br />
+      <style jsx>{`
+        .main {
+          padding: 3rem 0;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+        }
+        .footer {
+          width: 100%;
+          height: 100px;
+          border-top: 1px solid #eaeaea;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        
+        .footer a {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          flex-grow: 1;
+        }
+      `}</style>
+
+      <main className="main">
+        <h1>Welcome to <a href="/">Link Preview!</a></h1>
+        <h2>A simple API site for getting link preview data</h2>
+        <p>
+          Works with multiple fallbacks, such as stealth emulation of a browser + fetching images by search. <br/>
           API built on Nextjs, but can be easily used in any Node.js enviroment.
         </p>
-        <p className={styles.description}>
-          GET request to <code className={styles.code}>/api/link-preview/[url]</code> <br />
+        <h2>GET request to <code>/api/link-preview/[url]</code></h2>
+        <p>
+          Requires "url" parameter to be <b><u>base64 encoded</u></b> url to fetch link preview <br/><br/>
+          Additional boolean parameters "stealth", "search", "validate" can be used
         </p>
-        <p style={{textAlign:"center"}}>
-          Requires "url" parameter to be base64 encoded url to fetch link preview
-        </p>
+        <ul>
+          <li>"stealth" - includes stealth browser emulation (longer fetch but very accurate results)</li>
+          <li>"search" - includes bing search images (longer fetch but multiple images)</li>
+          <li>"validate" - provides a "top" image that is validated (longer fetch but image src exists and loads)</li>
+        </ul>
       </main>
 
-      <footer className={styles.footer} style={{paddingTop:"10px",paddingBottom:"10px"}}>
+      <footer className="footer">
         <a
           href="https://favorited.me"
           target="_blank"
           rel="noopener noreferrer"
+          style={{color:"#fcb150"}}
         >
           Made by{' '}
-          <span className={styles.logo} style={{paddingRight: "5px", height:28}}>
-            <Image src="/logo.svg" alt="Favorited Logo" width={30} height={30}/>
+          <span style={{marginLeft: "5px", marginRight: "5px", height:24}}>
+            <Image src="/icon.svg" alt="Favorited Logo" width={24} height={24}/>
           </span>
-          <span style={{color:"#fcb150", fontSize:"1.25rem"}}>Favorited</span>
+          <span style={{color:"#fcb150", fontSize:"1.2rem"}}><b>Favorited</b></span>
         </a>
       </footer>
+      
     </div>
   )
 }
