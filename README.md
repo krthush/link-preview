@@ -28,9 +28,9 @@ You can start editing the page by modifying `pages/index.js`. The page auto-upda
 
 Link preview for [https://www.youtube.com/](https://www.youtube.com/)
 
-Base64 encoded url aHR0cHM6Ly93d3cueW91dHViZS5jb20v
+Base64 encoded url: aHR0cHM6Ly93d3cueW91dHViZS5jb20v
 
-Preview route at [http://localhost:3000/api/link-preview/aHR0cHM6Ly93d3cueW91dHViZS5jb20v](http://localhost:3000/api/link-preview/aHR0cHM6Ly93d3cueW91dHViZS5jb20v)
+Preview route: [http://localhost:3000/api/link-preview/aHR0cHM6Ly93d3cueW91dHViZS5jb20v](http://localhost:3000/api/link-preview/aHR0cHM6Ly93d3cueW91dHViZS5jb20v)
 
 Result:
 
