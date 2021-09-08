@@ -2,11 +2,11 @@
 
 A simple API site for getting link preview data.
 
-Works with multiple fallbacks, such as stealth emulation of a browser + fetching images by search. <br>API built on Nextjs, but can be easily used in any Node.js enviroment that is NOT serverless.
+Works with multiple fallbacks, such as stealth emulation of a browser + fetching images by search.
 
-GET request to /api/link-preview/[url] <br>Requires "url" parameter to be base64 encoded url to fetch link preview.
+For link previews, make GET requests to /api/link-preview/[url] <br>Requires "url" parameter to be base64 encoded url to fetch link preview.
 
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+API built on [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app). Can be easily used in any other Node.js enviroments that when NOT hosted serverless - see notes.
 
 ## Getting Started
 
