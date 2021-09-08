@@ -1,14 +1,11 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next';
-import axios, { Method } from 'axios';
-import cheerio from 'cheerio';
+import axios from 'axios';
 import psl from 'psl';
-import puppeteer from 'puppeteer-extra';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
-import api from '../../../lib/api';
-import { extractHostname, isValidWebUrl } from '../../../utils';
-import withLinkPreviewQuery, { LinkParamsRequest } from '../../../middleware/withLinkPreviewQuery';
+import { extractHostname, isString, isValidWebUrl } from '../../../utils';
+import { getBingImageSearch, getImageSearchString } from '../../../utils/search';
+import { scrapeSite, SiteData } from '../../../utils/scraper';
 
 interface ApiData {
   success: boolean
@@ -22,326 +19,170 @@ interface ApiData {
   errors?: Array<any>
 }
 
-interface SiteData {
-  url: string
-  title: string
-  favicon?: string
-  description?: string
-  image?: string
-  author?: string
-  siteName?: string
-  largestImage?: string
-}
-
-const handler = async (req: LinkParamsRequest, res: NextApiResponse<ApiData>) => {
-  const { url, stealth, search } = req.params;
-  console.log(url);
-  console.log(stealth);
-  console.log(search);
-  const targetUrl = decodeURIComponent(Buffer.from(url, 'base64').toString());
-  if (isValidWebUrl(targetUrl)) {
-    switch (req.method) {
-      case 'GET':
-
-        // Get search images for domain name
-        let domainNameImageUrls: Array<string> = [];
-        let imageSearchString;
-        let errors: Array<any> = [];
-        const rootDomain = psl.get(extractHostname(targetUrl));
-        if (rootDomain) {
-          const parsed = psl.parse(rootDomain);
-          if (!parsed.error) {
-            if (parsed.sld) {
-              imageSearchString = parsed.sld; // domain name
-              const imageSearch = await getBingImageSearch(imageSearchString);
-              if (imageSearch.results) {
-                domainNameImageUrls = imageSearch.results.map((imageResult: { contentUrl: string; }) => imageResult.contentUrl)
-              } else {
-                errors.push(imageSearch.error);
-              }
-            } else {
-              throw Error("Second level domain not found");
-            }
-          } else {
-            throw Error(JSON.stringify(parsed.error));
-          }
-        } else {
-          throw Error("Root domain not found");
-        }
-      
-        // Scraped given url/link to get site data
-        const scrapedSite = await scrapeSite(targetUrl);
-      
-        if (scrapedSite.data) {
-          if (/\S/.test(scrapedSite.data.title)) {
-            // Get search images specific to given url/link
-            imageSearchString = getImageSearchString(scrapedSite.data.title, scrapedSite.data.url, scrapedSite.data.siteName);
-            const imageSearch = await getBingImageSearch(imageSearchString);
-            if (imageSearch.results) { 
-              const imageUrls = imageSearch.results.map((imageResult: { contentUrl: string; }) => imageResult.contentUrl);
-              // Add in some of the search images for domain name
-              imageUrls.splice(2, 0, domainNameImageUrls[0]);
-              imageUrls.splice(5, 0, domainNameImageUrls[1]);
-              imageUrls.splice(10, 0, domainNameImageUrls[2]);
-              imageUrls.splice(15, 0, domainNameImageUrls[3]);
-              imageUrls.splice(20, 0, domainNameImageUrls[4]);
-              return res.status(200).json({
-                result: {
-                  siteData: scrapedSite.data,
-                  imageSearch: imageSearchString,
-                  imageResults: imageUrls,
-                  topImage: await getTopImage(imageUrls, scrapedSite.data)
-                },
-                success: true
-              })
-            } else {
-              // Fallback to just show domain search images if they exist and any errors
-              errors.push(imageSearch.error);
-              return res.status(200).json({
-                errors: errors,
-                success: true,
-                result: {
-                  siteData: scrapedSite.data,
-                  imageSearch: imageSearchString,
-                  imageResults: domainNameImageUrls,
-                  topImage: await getTopImage(domainNameImageUrls, scrapedSite.data)
-                }
-              });
-            }
-          } else {
-            // Fallback to just show domain search images if they exist and any errors
-            return res.status(200).json({
-              errors: errors,
-              success: true,
-              result: {
-                siteData: scrapedSite.data,
-                imageSearch: imageSearchString,
-                imageResults: domainNameImageUrls,
-                topImage: await getTopImage(domainNameImageUrls, scrapedSite.data)
-              }
-            });
-          }
-        } else {
-          // Fallback to just show domain search images if they exist and any errors
-          errors.push(scrapedSite.errors);
-          return res.status(200).json({
-            errors: errors,
-            success: true,
-            result: {
-              imageSearch: imageSearchString,
-              imageResults: domainNameImageUrls,
-              topImage: await getTopImage(domainNameImageUrls)
-            }
-          });
-        }
-
-      default:
-        return res.status(404).json({ success: false, error: `Method ${req.method} not allowed` });
+const handler = async (req: NextApiRequest, res: NextApiResponse<ApiData>) => {
+  const params = getLinkPreviewParams(req);
+  if (params.errors.length == 0) {
+    const { url, stealth, search, validate } = params.data;
+    const targetUrl = decodeURIComponent(Buffer.from(url, 'base64').toString());
+    if (isValidWebUrl(targetUrl)) {
+      switch (req.method) {
+        case 'GET':
+          const linkPreviewData = await getLinkPreviewData(targetUrl, stealth, search, validate);
+          return res.status(200).json(linkPreviewData);
+        default:
+          return res.status(404).json({ success: false, error: `Method ${req.method} not allowed` });
+      }
+    } else {
+      return res.status(400).json({ success: false, error: 'Url string is invalid.' });
     }
   } else {
-    return res.status(400).json({ success: false, error: 'Invalid url parameter.' });
+    return res.status(400).json({ success: false, errors: params.errors });    
   }
 }
 
-const getImageSearchString = (title: string, url: string, siteName?: string) => {
-  
-  const rootDomain = psl.get(extractHostname(url));
-  let searchString = title;
-  if (rootDomain) {
-    const domainSearchMask = rootDomain;
-    const domainRegEx = new RegExp(domainSearchMask, 'ig'); 
-    const stripRootDomain = title.replace(domainRegEx, '');
-    if (/\S/.test(stripRootDomain)) {
-      searchString = stripRootDomain;
+// Get relevant params with validated & correct types
+const getLinkPreviewParams = (req: NextApiRequest) => {
+  const { url, stealth, search, validate } = req.query;
+  let urlString = "";
+  let stealthBool: boolean | undefined;
+  let searchBool: boolean | undefined;
+  let validateBool: boolean | undefined;
+  let errors: Array<string> = [];
+  if (url && isString(url)) {
+    urlString = url
+  } else {
+    errors.push('Url base64 encoded string required. Only non array string parameter allowed.');
+  }
+  if (stealth) {
+    if (stealth === 'true') {
+      stealthBool = true;
+    } else if (stealth === 'false') {
+      stealthBool = false;
+    } else {
+      errors.push('Stealth parameter must be boolean - true or false.');
     }
   }
-
-  // Can remove site name here for more specificity but generally leads to worse results
-  // const siteNameSearchMask = siteName ? siteName : '';
-  // const siteNameRegEx = new RegExp(siteNameSearchMask, 'ig');
-  // const stripSiteName = searchString.replace(siteNameRegEx, '');
-  // searchString = stripSiteName;
-
-  const stripSpecialChars = searchString.replace(/[&\/\\#,+()$~%.'":*?<>{}|—]/g, ' ').trim();
-  searchString = stripSpecialChars;
-
-  return searchString;
-
-}
-
-const getBingImageSearch = async (search: string): Promise<{ results?: Array<any>, error?: any }> => {
-  const subscriptionKey = process.env.AZURE_BING_SEARCH_KEY;
-  const url = 'https://api.bing.microsoft.com/v7.0/images/search';
   if (search) {
-    const config = {
-      method : 'GET' as Method,
-      url: url + '?q=' + encodeURIComponent(search) + '&aspect=Square',
-      headers : {
-      'Ocp-Apim-Subscription-Key' : subscriptionKey,
-      }
-    }
-    try {
-      const res = await api.request(config);
-      return {
-        results: res.data.value
-      }
-    } catch (error) {
-      return {
-        error: error
-      }
-    }
-  } else {
-    return {
-      error: "No search string for image"
-    }
-  }
-}
-
-const scrapeSite = async (url: string) => {
-  
-  let html: any;
-  let errors: Array<any> = [];
-  let tagData: SiteData | undefined;
-
-  try {
-    const res = await api(encodeURI(decodeURI(url))); // Recode URI to avoid Error Request path contains unescaped characters
-    html = res.data;
-  } catch (err: any) {
-    if (err.response) {
-      // Request made and server responded
-      console.log(err.response.data);
-      console.log(err.response.status);
-      console.log(err.response.headers);
-    } else if (err.request) {
-      // The request was made but no response was received
-      console.log(err.request);
+    if (search === 'true') {
+      searchBool = true;
+    } else if (search === 'false') {
+      searchBool = false;
     } else {
-      // Something happened in setting up the request that triggered an Error
-      console.log('Error', err.message);
+      errors.push('Search parameter must be boolean - true or false.');
     }
-    errors.push(err);
   }
-
-  if (html) {
-    tagData = scrapeMetaTags(url, html);
-    // If no image found try stealth puppeteer with searching for largest image
-    if (tagData.image) {
-      return {
-        data: tagData
-      }
+  if (validate) {
+    if (validate === 'true') {
+      validateBool = true;
+    } else if (validate === 'false') {
+      validateBool = false;
     } else {
-      try {
-        const scrapedData = await stealthScrapeUrl(url);
-        tagData.largestImage = scrapedData.largestImage;
-        return {
-          data: tagData
-        }
-      } catch (err) {
-        console.log(err);
-        errors.push(err);
-        return {
-          errors: errors
-        }
-      }
-    }
-  } else {
-    try {
-      const scrapedData = await stealthScrapeUrl(url);
-      html = scrapedData.html;
-      tagData = scrapeMetaTags(url, html);
-      tagData.largestImage = scrapedData.largestImage;
-      return {
-        data: tagData
-      }
-    } catch (err) {
-      console.log(err);
-      errors.push(err);
-      return {
-        errors: errors
-      }
+      errors.push('Validate parameter must be boolean - true or false.');
     }
   }
-
-}
-
-// Use cheerio (jQuery like selector for html) to fetch site meta tags
-const scrapeMetaTags = (url: string, html: any) => {
-
-  const $ = cheerio.load(html);
-  
-  const getMetatag = (name: string) =>  
-      $(`meta[name=${name}]`).attr('content') ||  
-      $(`meta[name="og:${name}"]`).attr('content') || 
-      $(`meta[property="og:${name}"]`).attr('content') ||  
-      $(`meta[name="twitter:${name}"]`).attr('content');
-
   return {
-    url,
-    title: $('title').first().text(),
-    favicon: $('link[rel="shortcut icon"]').attr('href'),
-    // description: $('meta[name=description]').attr('content'),
-    description: getMetatag('description'),
-    image: getMetatag('image'),
-    author: getMetatag('author'),
-    siteName: getMetatag('site_name')
+    data: {
+      url: urlString,
+      stealth: stealthBool,
+      search: searchBool,
+      validate: validateBool
+    },
+    errors: errors
   }
-
 }
 
-// Additional fallback using stealth puppeteer see "https://github.com/berstend/puppeteer-extra/wiki/Beginner:-I'm-new-to-scraping-and-being-blocked"
-// For sites such as https://www.fiverr.com/sorich1/fix-bugs-and-build-any-laravel-php-and-vuejs-projects, https://www.netflix.com/gb/title/70136120
-const stealthScrapeUrl = async (url: string) => {
+// Get preview data from site will fallbacks - site scraping (standard + stealth) and bing search for images
+const getLinkPreviewData = async (targetUrl: string, stealth?: boolean, search?: boolean, validate?: boolean) => {
 
-  let html;
-  let largestImage;
+  // Get search images for domain name
+  let domainNameImageUrls: Array<string> = [];
+  let imageSearchString;
+  let errors: Array<any> = [];
+  if (search !== false) {
+    const rootDomain = psl.get(extractHostname(targetUrl));
+    if (rootDomain) {
+      const parsed = psl.parse(rootDomain);
+      if (!parsed.error) {
+        if (parsed.sld) {
+          imageSearchString = parsed.sld; // domain name
+          const imageSearch = await getBingImageSearch(imageSearchString);
+          if (imageSearch.results) {
+            domainNameImageUrls = imageSearch.results.map((imageResult: { contentUrl: string; }) => imageResult.contentUrl)
+          } else {
+            errors.push(imageSearch.error);
+          }
+        } else {
+          throw Error("Second level domain not found");
+        }
+      } else {
+        throw Error(JSON.stringify(parsed.error));
+      }
+    } else {
+      throw Error("Root domain not found");
+    }
+  }
 
-  await puppeteer.use(StealthPlugin()).launch().then(async browser => {
+  // Scraped given url/link to get site data
+  const scrapedSite = await scrapeSite(targetUrl, stealth);
 
-    const page = await browser.newPage();;
-    await page.goto(url, { waitUntil: 'networkidle0' });
-
-    html = await page.evaluate(() => document.querySelector('*')?.outerHTML);
-
-    // Check through images in site for largest image to use incase site image not found
-    largestImage = await page.evaluate(() => {
-
-      const imageLargest = () => {
-        let best = null;
-        let images = document.getElementsByTagName("img");
-        for (let img of images as any) {
-          if (imageSize(img) > imageSize(best)) {
-            best = img
+  if (scrapedSite.data) {
+    if (/\S/.test(scrapedSite.data.title) && search !== false) {
+      // Get search images specific to given url/link
+      imageSearchString = getImageSearchString(scrapedSite.data.title, scrapedSite.data.url, scrapedSite.data.siteName);
+      const imageSearch = await getBingImageSearch(imageSearchString);
+      if (imageSearch.results) { 
+        let imageUrls = imageSearch.results.map((imageResult: { contentUrl: string; }) => imageResult.contentUrl);
+        // Add in some of the search images for domain name
+        imageUrls = mergeImageUrls(imageUrls, domainNameImageUrls);
+        return {
+          result: {
+            siteData: scrapedSite.data,
+            imageSearch: imageSearchString,
+            imageResults: imageUrls,
+            topImage: ((validate !== false) ? await getTopImage(imageUrls, scrapedSite.data) : undefined)
+          },
+          success: true
+        }
+      } else {
+        // Fallback to just show domain search images if they exist and any errors
+        errors.push(imageSearch.error);
+        return {
+          errors: errors,
+          success: true,
+          result: {
+            siteData: scrapedSite.data,
+            imageSearch: imageSearchString,
+            imageResults: domainNameImageUrls,
+            topImage: ((validate !== false) ? await getTopImage(domainNameImageUrls, scrapedSite.data) : undefined)
           }
         }
-        return best;
       }
-
-      const imageSize = (img: HTMLImageElement) => {
-        if (!img) {
-          return 0;
+    } else {
+      // Fallback to just show domain search images if they exist and any errors
+      return {
+        errors: errors,
+        success: true,
+        result: {
+          siteData: scrapedSite.data,
+          imageSearch: imageSearchString,
+          imageResults: domainNameImageUrls,
+          topImage: ((validate !== false) ? await getTopImage(domainNameImageUrls, scrapedSite.data) : undefined)
         }
-        return img.naturalWidth * img.naturalHeight;
       }
-
-      const imageSrc = (img: HTMLImageElement) => {
-        if (!img) {
-          return null;
-        }
-        return img.src
+    }
+  } else {
+    // Fallback to just show domain search images if they exist and any errors
+    errors.push(scrapedSite.errors);
+    return {
+      errors: errors,
+      success: true,
+      result: {
+        imageSearch: imageSearchString,
+        imageResults: domainNameImageUrls,
+        topImage: ((validate !== false) ? await getTopImage(domainNameImageUrls) : undefined)
       }
-
-      return imageSrc(imageLargest()); 
-
-    });
-
-    await browser.close();
-
-  });
-
-  return {
-    html: html,
-    largestImage: largestImage
-  };
+    }
+  }  
 
 }
 
@@ -381,13 +222,18 @@ const checkIfValidImageUrl = async (imageUrl: string) => {
 }
 
 const mergeImageUrls = (array1:Array<string>, array2:Array<string>) => {
-  let imageUrls:Array<string> = [];
-  const l = Math.min(array1.length, array2.length);    
-  for (let i = 0; i < l; i++) {
-    imageUrls.push(array1[i], array2[i]);
-  }
-  imageUrls.push(...array1.slice(l), ...array2.slice(l));
-  return imageUrls;
+  // let imageUrls:Array<string> = [];
+  // const l = Math.min(array1.length, array2.length);    
+  // for (let i = 0; i < l; i++) {
+  //   imageUrls.push(array1[i], array2[i]);
+  // }
+  // imageUrls.push(...array1.slice(l), ...array2.slice(l));
+  array1.splice(2, 0, array2[0]);
+  array1.splice(5, 0, array2[1]);
+  array1.splice(10, 0, array2[2]);
+  array1.splice(15, 0, array2[3]);
+  array1.splice(20, 0, array2[4]);
+  return array1;
 }
 
-export default withLinkPreviewQuery(handler);
+export default handler;
