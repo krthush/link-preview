@@ -1,26 +1,28 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { Method } from 'axios';
+import axios, { Method } from 'axios';
 import cheerio from 'cheerio';
 import psl from 'psl';
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
 import api from '../../../lib/api';
-import { extractHostname, isString, isValidWebUrl } from '../../../utils';
+import { extractHostname, isValidWebUrl } from '../../../utils';
+import withLinkPreviewQuery, { LinkParamsRequest } from '../../../middleware/withLinkPreviewQuery';
 
 interface ApiData {
   success: boolean
   result?: {
-    siteData?: siteData,
+    siteData?: SiteData,
     imageSearch?: string,
-    imageResults: Array<string>
+    imageResults?: Array<string>,
+    topImage?: string
   }
   error?: any
   errors?: Array<any>
 }
 
-interface siteData {
+interface SiteData {
   url: string
   title: string
   favicon?: string
@@ -31,110 +33,113 @@ interface siteData {
   largestImage?: string
 }
 
-const handler = async (req: NextApiRequest, res: NextApiResponse<ApiData>) => {
-  const { url } = req.query;
-  if (isString(url)) {
-    const targetUrl = decodeURIComponent(Buffer.from(url, 'base64').toString());
-    if (isValidWebUrl(targetUrl)) {
-      switch (req.method) {
-        case 'GET':
+const handler = async (req: LinkParamsRequest, res: NextApiResponse<ApiData>) => {
+  const { url, stealth, search } = req.params;
+  console.log(url);
+  console.log(stealth);
+  console.log(search);
+  const targetUrl = decodeURIComponent(Buffer.from(url, 'base64').toString());
+  if (isValidWebUrl(targetUrl)) {
+    switch (req.method) {
+      case 'GET':
 
-          // Get search images for domain name
-          let domainNameImageUrls: Array<string> = [];
-          let imageSearchString = "";
-          let errors: Array<any> = [];
-          const rootDomain = psl.get(extractHostname(targetUrl));
-          if (rootDomain) {
-            const parsed = psl.parse(rootDomain);
-            if (!parsed.error) {
-              if (parsed.sld) {
-                imageSearchString = parsed.sld; // domain name
-                const imageSearch = await getBingImageSearch(imageSearchString);
-                if (imageSearch.results) {
-                  domainNameImageUrls = imageSearch.results.map((imageResult: { contentUrl: string; }) => imageResult.contentUrl)
-                } else {
-                  errors.push(imageSearch.error);
-                }
+        // Get search images for domain name
+        let domainNameImageUrls: Array<string> = [];
+        let imageSearchString;
+        let errors: Array<any> = [];
+        const rootDomain = psl.get(extractHostname(targetUrl));
+        if (rootDomain) {
+          const parsed = psl.parse(rootDomain);
+          if (!parsed.error) {
+            if (parsed.sld) {
+              imageSearchString = parsed.sld; // domain name
+              const imageSearch = await getBingImageSearch(imageSearchString);
+              if (imageSearch.results) {
+                domainNameImageUrls = imageSearch.results.map((imageResult: { contentUrl: string; }) => imageResult.contentUrl)
               } else {
-                throw Error("Second level domain not found");
+                errors.push(imageSearch.error);
               }
             } else {
-              throw Error(JSON.stringify(parsed.error));
+              throw Error("Second level domain not found");
             }
           } else {
-            throw Error("Root domain not found");
+            throw Error(JSON.stringify(parsed.error));
           }
-        
-          // Scraped given url/link to get site data
-          const scrapedSite = await scrapeSite(targetUrl);
-        
-          if (scrapedSite.data) {
-            if (/\S/.test(scrapedSite.data.title)) {
-              // Get search images specific to given url/link
-              imageSearchString = getImageSearchString(scrapedSite.data.title, scrapedSite.data.url, scrapedSite.data.siteName);
-              const imageSearch = await getBingImageSearch(imageSearchString);
-              if (imageSearch.results) { 
-                const imageUrls = imageSearch.results.map((imageResult: { contentUrl: string; }) => imageResult.contentUrl);
-                // Add in some of the search images for domain name
-                imageUrls.splice(2, 0, domainNameImageUrls[0]);
-                imageUrls.splice(5, 0, domainNameImageUrls[1]);
-                imageUrls.splice(10, 0, domainNameImageUrls[2]);
-                imageUrls.splice(15, 0, domainNameImageUrls[3]);
-                imageUrls.splice(20, 0, domainNameImageUrls[4]);
-                return res.status(200).json({
-                  result: {
-                    siteData: scrapedSite.data,
-                    imageSearch: imageSearchString,
-                    imageResults: imageUrls
-                  },
-                  success: true
-                })
-              } else {
-                // Fallback to just show domain search images if they exist and any errors
-                errors.push(imageSearch.error);
-                return res.status(200).json({
-                  errors: errors,
-                  success: true,
-                  result: {
-                    siteData: scrapedSite.data,
-                    imageSearch: imageSearchString,
-                    imageResults: domainNameImageUrls
-                  }
-                });
-              }
+        } else {
+          throw Error("Root domain not found");
+        }
+      
+        // Scraped given url/link to get site data
+        const scrapedSite = await scrapeSite(targetUrl);
+      
+        if (scrapedSite.data) {
+          if (/\S/.test(scrapedSite.data.title)) {
+            // Get search images specific to given url/link
+            imageSearchString = getImageSearchString(scrapedSite.data.title, scrapedSite.data.url, scrapedSite.data.siteName);
+            const imageSearch = await getBingImageSearch(imageSearchString);
+            if (imageSearch.results) { 
+              const imageUrls = imageSearch.results.map((imageResult: { contentUrl: string; }) => imageResult.contentUrl);
+              // Add in some of the search images for domain name
+              imageUrls.splice(2, 0, domainNameImageUrls[0]);
+              imageUrls.splice(5, 0, domainNameImageUrls[1]);
+              imageUrls.splice(10, 0, domainNameImageUrls[2]);
+              imageUrls.splice(15, 0, domainNameImageUrls[3]);
+              imageUrls.splice(20, 0, domainNameImageUrls[4]);
+              return res.status(200).json({
+                result: {
+                  siteData: scrapedSite.data,
+                  imageSearch: imageSearchString,
+                  imageResults: imageUrls,
+                  topImage: await getTopImage(imageUrls, scrapedSite.data)
+                },
+                success: true
+              })
             } else {
               // Fallback to just show domain search images if they exist and any errors
+              errors.push(imageSearch.error);
               return res.status(200).json({
                 errors: errors,
                 success: true,
                 result: {
                   siteData: scrapedSite.data,
                   imageSearch: imageSearchString,
-                  imageResults: domainNameImageUrls
+                  imageResults: domainNameImageUrls,
+                  topImage: await getTopImage(domainNameImageUrls, scrapedSite.data)
                 }
               });
             }
           } else {
             // Fallback to just show domain search images if they exist and any errors
-            errors.push(scrapedSite.errors);
             return res.status(200).json({
               errors: errors,
               success: true,
               result: {
+                siteData: scrapedSite.data,
                 imageSearch: imageSearchString,
-                imageResults: domainNameImageUrls
+                imageResults: domainNameImageUrls,
+                topImage: await getTopImage(domainNameImageUrls, scrapedSite.data)
               }
             });
           }
+        } else {
+          // Fallback to just show domain search images if they exist and any errors
+          errors.push(scrapedSite.errors);
+          return res.status(200).json({
+            errors: errors,
+            success: true,
+            result: {
+              imageSearch: imageSearchString,
+              imageResults: domainNameImageUrls,
+              topImage: await getTopImage(domainNameImageUrls)
+            }
+          });
+        }
 
-        default:
-          return res.status(404).json({ success: false, error: `Method ${req.method} not allowed` });
-      }
-    } else {
-      return res.status(400).json({ success: false, error: 'Invalid web url' });
+      default:
+        return res.status(404).json({ success: false, error: `Method ${req.method} not allowed` });
     }
   } else {
-    return res.status(400).json({ success: false, error: 'Only one url can be checked' });
+    return res.status(400).json({ success: false, error: 'Invalid url parameter.' });
   }
 }
 
@@ -196,7 +201,7 @@ const scrapeSite = async (url: string) => {
   
   let html: any;
   let errors: Array<any> = [];
-  let tagData: siteData | undefined;
+  let tagData: SiteData | undefined;
 
   try {
     const res = await api(encodeURI(decodeURI(url))); // Recode URI to avoid Error Request path contains unescaped characters
@@ -340,6 +345,41 @@ const stealthScrapeUrl = async (url: string) => {
 
 }
 
+// Get the "best" image i.e. valid image from results
+const getTopImage = async (imageResults: Array<string>, siteDate?: SiteData) => {
+  if (siteDate) {
+    if (siteDate.image) {
+      if (await checkIfValidImageUrl(siteDate.image)) {
+        return siteDate.image;
+      }
+    }
+    if (siteDate.largestImage) {
+      if (await checkIfValidImageUrl(siteDate.largestImage)) {
+        return siteDate.largestImage;
+      }
+    }
+  }
+  for (const imageUrl of imageResults) {
+    if (await checkIfValidImageUrl(imageUrl)) {
+      return imageUrl;
+    }
+  }
+}
+
+const checkIfValidImageUrl = async (imageUrl: string) => {
+  try {
+    const response = await axios.get(imageUrl);
+    if (response.status == 200 && ((response.headers['content-type'])?.match(/(image)+\//g))?.length != 0) {
+      return true;
+    } else {
+      return false;
+    }
+  } catch (err) {
+    console.log (err);
+    return false;
+  }
+}
+
 const mergeImageUrls = (array1:Array<string>, array2:Array<string>) => {
   let imageUrls:Array<string> = [];
   const l = Math.min(array1.length, array2.length);    
@@ -350,4 +390,4 @@ const mergeImageUrls = (array1:Array<string>, array2:Array<string>) => {
   return imageUrls;
 }
 
-export default handler;
+export default withLinkPreviewQuery(handler);
