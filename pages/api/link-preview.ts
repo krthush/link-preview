@@ -130,7 +130,7 @@ const getLinkPreviewData = async (targetUrl: string, stealth?: boolean, search?:
 
   // Scraped given url/link to get site data
   const scrapedSite = await scrapeSite(targetUrl, stealth);
-  errors.push(scrapedSite.errors);
+  errors.concat(scrapedSite.errors);
 
   if (scrapedSite.data && scrapedSite.data.title) {
     if (/\S/.test(scrapedSite.data.title) && search !== false) {

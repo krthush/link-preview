@@ -20,78 +20,36 @@ export const scrapeSite = async (url: string, stealth?: boolean) => {
   
   let html: any;
   let errors: Array<any> = [];
-  let tagData: SiteData | undefined;
+  let siteData: SiteData | undefined;
 
   // First try standard request using axios
   try {
     const res = await axios.get(url);
     html = res.data;
-  } catch (err: any) {
-    if (err.response) {
-      // Request made and server responded
-      console.log(err.response.data);
-      console.log(err.response.status);
-      console.log(err.response.headers);
-    } else if (err.request) {
-      // The request was made but no response was received
-      console.log(err.request);
-    } else {
-      // Something happened in setting up the request that triggered an Error
-      console.log('Error', err.message);
-    }
+  } catch (err) {
+    console.log(err);
     errors.push(err);
   }
-
   if (html) {
-    tagData = scrapeMetaTags(url, html);
-    // If no image found try stealth puppeteer with searching for largest image
-    if (tagData.image) {
-      return {
-        data: tagData
-      }
-    } else if (stealth !== false) {
-      try {
-        const scrapedData = await stealthScrapeUrl(url);
-        html = scrapedData.html;
-        tagData = scrapeMetaTags(url, html);
-        tagData.largestImage = scrapedData.largestImage;
-        return {
-          data: tagData
-        }
-      } catch (err) {
-        console.log(err);
-        errors.push(err);
-        return {
-          data: tagData,
-          errors: errors
-        }
-      }
-    } else {
-      return {
-        data: tagData
-      }
-    }
-  } else if (stealth !== false) {
+    siteData = scrapeMetaTags(url, html);
+  }
+
+  // If no site data OR site image found try stealth puppeteer with searching for largest image
+  if ((siteData === undefined || siteData.image === undefined) && stealth !== false) {
     try {
       const scrapedData = await stealthScrapeUrl(url);
       html = scrapedData.html;
-      tagData = scrapeMetaTags(url, html);
-      tagData.largestImage = scrapedData.largestImage;
-      return {
-        data: tagData
-      }
+      siteData = scrapeMetaTags(url, html);
+      siteData.largestImage = scrapedData.largestImage;
     } catch (err) {
       console.log(err);
       errors.push(err);
-      return {
-        data: tagData,
-        errors: errors
-      }
     }
-  } else {
-    return {
-      data: tagData
-    }
+  }
+
+  return {
+    data: siteData,
+    errors: errors
   }
 
 }
