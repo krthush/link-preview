@@ -1,6 +1,6 @@
 ## Link Preview
 
-A simple API for getting link preview data.
+An API for getting near perfect link preview data.
 
 Works with multiple fallbacks, such as stealth emulation of a browser + fetching images by search.
 

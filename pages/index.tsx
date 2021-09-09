@@ -58,9 +58,9 @@ export default function Home() {
 
       <main className="main">
         <h1>Welcome to <a href="https://github.com/krthush/link-preview">Link Preview!</a></h1>
-        <h2>A simple open source API for getting link preview data</h2>
+        <h2>An open source API for getting link preview data.</h2>
         <p>
-          <b><u>Near perfect</u></b> results with multiple fallbacks: stealth emulation of a browser &amp; fetching images by search. <br/><br/>
+          <b><u>Near perfect</u></b> results with multiple fallbacks: stealth emulation of a browser &amp; fetching images by search.<br/><br/>
           API built on Nextjs, but can be easily used in any Node.js enviroment (NOT serverless).
         </p>
         <h2>Try it out!</h2>
@@ -68,7 +68,7 @@ export default function Home() {
         <h2><a href="https://github.com/krthush/link-preview">Source code - Github</a></h2>
         <h2>GET request to <code>/api/link-preview?url=</code></h2>
         <p>
-          Requires "url" parameter to be <b><u>base64 encoded</u></b> url to fetch link preview. <br/><br/>
+          Requires "url" parameter to be <b><u>base64 encoded</u></b> url to fetch link preview.<br/><br/>
           Optional boolean parameters "stealth", "search", "validate" can be used:
         </p>
         <ul style={{paddingInlineStart:20}}>
