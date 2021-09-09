@@ -124,9 +124,9 @@ const getLinkPreviewData = async (targetUrl: string, stealth?: boolean, search?:
   }
 
   // If amazon site, get amazon data using https://webservices.amazon.com/paapi5/documentation/
-  // if (isAmazonSite(targetUrl)) {
-  //   const amazonData = await getAmazonData(targetUrl);
-  // }
+  if (isAmazonSite(targetUrl)) {
+    const amazonData = await getAmazonData(targetUrl);
+  }
 
   // Scraped given url/link to get site data
   const scrapedSite = await scrapeSite(targetUrl, stealth);
