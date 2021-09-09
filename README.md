@@ -4,7 +4,15 @@ A simple API site for getting link preview data.
 
 Works with multiple fallbacks, such as stealth emulation of a browser + fetching images by search.
 
-For link previews, make GET requests to `/api/link-preview?url=`<br>Requires "url" parameter to be base64 encoded string to fetch link preview.
+For link previews, make GET requests to `/api/link-preview?url=`
+
+Requires "url" parameter to be base64 encoded string to fetch link preview.
+
+Optional boolean parameters "stealth", "search", "validate" can be used:
+
+1. "stealth" - includes stealth browser emulation (longer fetch but very accurate results)
+2. "search" - includes bing search images (longer fetch but multiple images)
+3. "validate" - includes "top" image that is validated (longer fetch but ensures image src exists and loads)
 
 API built on [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app). Can be easily used in any other Node.js enviroments that when NOT hosted serverless - see notes.
 
@@ -20,11 +28,15 @@ Result:
 
 ```
 {
+  "errors": [
+    null
+  ],
+  "success": true,
   "result": {
-    "metaTags": {
+    "siteData": {
       "url": "https://www.youtube.com/",
       "title": "YouTube",
-      "favicon": "https://www.youtube.com/s/desktop/2498be25/img/favicon.ico",
+      "favicon": "https://www.youtube.com/s/desktop/6b6f031c/img/favicon.ico",
       "description": "Enjoy the videos and music that you love, upload original content and share it all with friends, family and the world on YouTube.",
       "image": "https://www.youtube.com/img/desktop/yt_1200.png"
     },
@@ -70,9 +82,9 @@ Result:
       "http://cdn.onlinewebfonts.com/svg/img_45240.png",
       "https://yt3.ggpht.com/a/AATXAJxFxv7GkT4x65uBGNa6Dz9YCdCsTD6L8ppv8Q=s900-c-k-c0xffffffff-no-rj-mo",
       "https://clipground.com/images/youtube-clipart-file-13.jpg"
-    ]
-  },
-  "success": true
+    ],
+    "topImage": "https://www.youtube.com/img/desktop/yt_1200.png"
+  }
 }
 ```
 

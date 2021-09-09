@@ -57,7 +57,7 @@ export default function Home() {
       `}</style>
 
       <main className="main">
-        <h1>Welcome to <a href="/">Link Preview!</a></h1>
+        <h1>Welcome to <a href="https://github.com/krthush/link-preview">Link Preview!</a></h1>
         <h2>A simple open source API for getting link preview data</h2>
         <p>
           <b><u>Near perfect</u></b> results with multiple fallbacks: stealth emulation of a browser &amp; fetching images by search. <br/><br/>
