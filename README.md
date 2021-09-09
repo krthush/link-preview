@@ -120,3 +120,7 @@ To learn more about Next.js, take a look at the following resources:
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+
+## Heroku - Deploy to production in 5 minutes
+
+[Deploy the Next.js app to production in 5 minutes](https://mariestarck.com/deploy-your-next-js-app-to-heroku-in-5-minutes/) - this great article gives a very quick way to get this API up and running in production using Heroku. I highly recommend doing this, if you plan on using this in production, since the public routes for the demo shouldn't be relied upon for production!

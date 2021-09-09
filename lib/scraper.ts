@@ -123,7 +123,18 @@ const stealthScrapeUrl = async (url: string) => {
   let html;
   let largestImage;
 
-  await puppeteer.use(StealthPlugin()).launch().then(async browser => {
+  const chromeOptions = {
+    headless: true,
+    defaultViewport: null,
+    args: [
+        "--incognito",
+        "--no-sandbox",
+        "--single-process",
+        "--no-zygote"
+    ],
+  };
+
+  await puppeteer.use(StealthPlugin()).launch(chromeOptions).then(async browser => {
 
     const page = await browser.newPage();
     await page.goto(url);
