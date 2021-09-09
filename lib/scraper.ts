@@ -131,8 +131,6 @@ const stealthScrapeUrl = async (url: string) => {
 
     html = await page.evaluate(() => document.querySelector('*')?.outerHTML);
 
-    console.log(html);
-
     // Check through images in site for largest image to use incase site image not found
     largestImage = await page.evaluate(() => {
 
