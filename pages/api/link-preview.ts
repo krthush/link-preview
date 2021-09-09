@@ -3,9 +3,9 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
 import psl from 'psl';
 
-import { extractHostname, isString, isValidWebUrl } from '../../../utils';
-import { getBingImageSearch, getImageSearchString } from '../../../utils/search';
-import { scrapeSite, SiteData } from '../../../utils/scraper';
+import { extractHostname, isString, isValidWebUrl } from '../../utils';
+import { getBingImageSearch, getImageSearchString } from '../../utils/search';
+import { scrapeSite, SiteData } from '../../utils/scraper';
 
 interface ApiData {
   success: boolean

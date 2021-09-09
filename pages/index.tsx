@@ -1,6 +1,27 @@
 import Head from 'next/head'
 import Image from 'next/image'
 
+const responseFormat = `{
+  success: boolean
+  result?: {
+    siteData?: {
+      url: string
+      title: string
+      favicon?: string
+      description?: string
+      image?: string
+      author?: string
+      siteName?: string
+      largestImage?: string
+    },
+    imageSearch?: string,
+    imageResults?: Array<string>,
+    topImage?: string
+  }
+  error?: any
+  errors?: Array<any>
+}`;
+
 export default function Home() {
   return (
     <div style={{marginLeft:"10px",marginRight:"10px"}}>
@@ -46,16 +67,20 @@ export default function Home() {
           Works with multiple fallbacks, such as stealth emulation of a browser + fetching images by search. <br/>
           API built on Nextjs, but can be easily used in any Node.js enviroment.
         </p>
-        <h2>GET request to <code>/api/link-preview/[url]</code></h2>
+        <h2>GET request to <code>/api/link-preview?url=</code></h2>
         <p>
           Requires "url" parameter to be <b><u>base64 encoded</u></b> url to fetch link preview <br/><br/>
-          Additional boolean parameters "stealth", "search", "validate" can be used
+          Optional boolean parameters "stealth", "search", "validate" can be used
         </p>
         <ul>
           <li>"stealth" - includes stealth browser emulation (longer fetch but very accurate results)</li>
           <li>"search" - includes bing search images (longer fetch but multiple images)</li>
           <li>"validate" - provides a "top" image that is validated (longer fetch but image src exists and loads)</li>
         </ul>
+        <h2>Response format</h2>
+        <p>
+          <code style={{whiteSpace:"pre", display:"block"}}>{responseFormat}</code>
+        </p>
       </main>
 
       <footer className="footer">

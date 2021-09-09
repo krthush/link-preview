@@ -4,7 +4,7 @@ A simple API site for getting link preview data.
 
 Works with multiple fallbacks, such as stealth emulation of a browser + fetching images by search.
 
-For link previews, make GET requests to /api/link-preview/[url] <br>Requires [url] parameter to be base64 encoded string to fetch link preview.
+For link previews, make GET requests to `/api/link-preview?url=`<br>Requires "url" parameter to be base64 encoded string to fetch link preview.
 
 API built on [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app). Can be easily used in any other Node.js enviroments that when NOT hosted serverless - see notes.
 
@@ -14,7 +14,7 @@ Link preview for [https://www.youtube.com/](https://www.youtube.com/)
 
 Base64 encoded url: aHR0cHM6Ly93d3cueW91dHViZS5jb20v
 
-Preview route: [http://localhost:3000/api/link-preview/aHR0cHM6Ly93d3cueW91dHViZS5jb20v](http://localhost:3000/api/link-preview/aHR0cHM6Ly93d3cueW91dHViZS5jb20v)
+Preview route: [http://localhost:3000/api/link-preview?url=aHR0cHM6Ly93d3cueW91dHViZS5jb20v](http://localhost:3000/api/link-preview?url=aHR0cHM6Ly93d3cueW91dHViZS5jb20v)
 
 Result:
 
