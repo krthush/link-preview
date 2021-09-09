@@ -1,5 +1,7 @@
-import Head from 'next/head'
-import Image from 'next/image'
+import Head from 'next/head';
+import Image from 'next/image';
+
+import LinkPreview from '../components/LinkPreview';
 
 const responseFormat = `{
   success: boolean
@@ -62,8 +64,7 @@ export default function Home() {
           API built on Nextjs, but can be easily used in any Node.js enviroment.
         </p>
         <h2>Try it out!</h2>
-          <input type="text" name="link" placeholder="https://www.youtube.com/"/>
-          <input type="submit" value="Submit"/>
+        <LinkPreview/>
         <h2>GET request to <code>/api/link-preview?url=</code></h2>
         <p>
           Requires "url" parameter to be <b><u>base64 encoded</u></b> url to fetch link preview. <br/><br/>
