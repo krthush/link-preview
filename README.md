@@ -4,6 +4,10 @@ A simple API site for getting link preview data.
 
 Works with multiple fallbacks, such as stealth emulation of a browser + fetching images by search.
 
+## [Demo Site](https://favorited-link-preview.herokuapp.com/)
+
+## Usage
+
 For link previews, make GET requests to `/api/link-preview?url=`
 
 Requires "url" parameter to be base64 encoded string to fetch link preview.
@@ -14,7 +18,9 @@ Optional boolean parameters "stealth", "search", "validate" can be used:
 2. "search" - includes bing search images (longer fetch but multiple images)
 3. "validate" - includes "top" image that is validated (longer fetch but ensures image src exists and loads)
 
-API built on [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app). Can be easily used in any other Node.js enviroments (NOT serverless - see notes).
+API built on [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app). Can be easily used in any other Node.js enviroments (NOT serverless - see [serverless issues](#serverless-issues)).
+
+For Bing Search to work you will need the following enviroment variable: `AZURE_BING_SEARCH_KEY`, see [Bing Image Search API](https://www.microsoft.com/en-us/bing/apis/bing-image-search-api).
 
 ## Example Link Preview
 
@@ -127,6 +133,12 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 Using Heroku, requires a few additional steps to make sure Puppeteer is working - see [Running Puppeteer on Heroku](https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md#running-puppeteer-on-heroku). In essence you need to ensure `puppeteer.launch({ args: ['--no-sandbox'] });` is used and Heroku's Linux box requires additional dependencies to be installed which can be done by the command `heroku buildpacks:add jontewks/puppeteer`.
 
-## Notes - Issues with Serverless
+## Issues with Serverless {#serverless-issues}
 
 This API will be difficult to get working with serverless enviroments, especially AWS lambdas - this is primarily due to Puppeteer which is quite a large package (definitly hitting the AWS lambda limit of 50MB). Unfortunatly without Puppeteer the results of the link previews get severely degraded. See [Running Puppeteer on AWS Lambda](https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md#running-puppeteer-on-aws-lambda) for further info.
+
+## Contributing
+
+This API was built for use with the [Favorited](https://favorited.me/) platform and is actively maintain by the Favorited team. We'd love any help with the project - feel free to open any issues, contribute with PRs, and whatever you'd feel like doing! We're keen on getting the link preview working as close to perfect as can be.
+
+The idea to open source this was inspired after seeing popular social media apps (signal, whatsapp, facebook etc.) having very good link preview services, and in contrary the freely available APIs / link preview systems online being quite lack lustre. The fetching of link previews is hard to perfect since many sites put methods in place to prevent easy data fetching/scraping - see [puppeteer-extra to prevent detection](https://github.com/berstend/puppeteer-extra/tree/master/packages/puppeteer-extra-plugin-stealth#status). Therefore its hard to guarantee link previews for all the URLs that exist, so if you do find any "problem sites" that don't generate great links - please open an issue, so we can get it working!
