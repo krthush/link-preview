@@ -12,6 +12,7 @@
     "axios": "^0.21.4",
     "cheerio": "^1.0.0-rc.10",
     "next": "11.1.2",
+    "paapi5-nodejs-sdk": "^1.1.0",
     "psl": "^1.8.0",
     "puppeteer": "^5.5.0",
     "puppeteer-extra": "^3.1.18",

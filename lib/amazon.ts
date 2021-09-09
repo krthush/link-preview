@@ -1,0 +1,46 @@
+const amazonUrlStarts = [
+  "https://amazon.",
+  "http://amazon.",
+  "https://www.amazon.",
+  "http://www.amazon.",
+  "https://amzn.",
+  "http://amzn.",
+  "https://www.amzn.",
+  "http://www.amzn."
+]
+
+export const isAmazonSite = (url: string) => {
+  let isAmazonSite = false;
+  amazonUrlStarts.forEach((amazonUrlStart) => {
+    if (url.startsWith(amazonUrlStart)) {
+      isAmazonSite = true;
+    }
+  });
+  return isAmazonSite;
+}
+
+export const getAmazonData = async (url: string) => {
+  const ASIN = getAmazonASIN(url);
+  if (ASIN) {
+    console.log(ASIN);
+    // Now use ASIN with amazon PAAPI SDK to find product data - title, description, image, pricing, etc.
+  } else {
+    throw Error("Amazon ASIN not found.");
+  }
+}
+
+const getAmazonASIN = (url: string) => {
+  const fullASINRegex = /(?:dp|o|gp|-|gp\/product|\/ASIN|gp\/offer-listing|gp\/product\/images|gp\/aw\/d)\/(B[0-9]{2}[0-9A-Z]{7}|[0-9]{9}(?:X|[0-9]))/g;
+  const fullASINSearch = url.match(fullASINRegex);
+  if (fullASINSearch && fullASINSearch.length > 0) {
+    const ASINRegex = /(B[0-9]{2}[0-9A-Z]{7}|[0-9]{9}(?:X|[0-9]))/g;
+    const ASINSearch = url.match(ASINRegex);
+    if (ASINSearch && ASINSearch.length > 0) {
+      return ASINSearch[0];
+    } else {
+      return undefined;
+    }
+  } else {
+    return undefined;
+  }
+}

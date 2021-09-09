@@ -6,6 +6,7 @@ import psl from 'psl';
 import { extractHostname, isString, isValidWebUrl } from '../../utils';
 import { getBingImageSearch, getImageSearchString } from '../../lib/search';
 import { scrapeSite, SiteData } from '../../lib/scraper';
+import { getAmazonData, isAmazonSite } from '../../lib/amazon';
 
 interface ApiData {
   success: boolean
@@ -121,6 +122,11 @@ const getLinkPreviewData = async (targetUrl: string, stealth?: boolean, search?:
       throw Error("Root domain not found");
     }
   }
+
+  // If amazon site, get amazon data using https://webservices.amazon.com/paapi5/documentation/
+  // if (isAmazonSite(targetUrl)) {
+  //   const amazonData = await getAmazonData(targetUrl);
+  // }
 
   // Scraped given url/link to get site data
   const scrapedSite = await scrapeSite(targetUrl, stealth);
