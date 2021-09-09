@@ -124,3 +124,9 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 ## Heroku - Deploy to production in 5 minutes
 
 [Deploy the Next.js app to production in 5 minutes](https://mariestarck.com/deploy-your-next-js-app-to-heroku-in-5-minutes/) - this great article gives a very quick way to get this API up and running in production using Heroku. I highly recommend doing this, if you plan on using this in production, since the public routes for the demo shouldn't be relied upon for production!
+
+Using Heroku, requires a few additional steps to make sure Puppeteer is working - see [Running Puppeteer on Heroku](https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md#running-puppeteer-on-heroku). In essence you need to ensure `puppeteer.launch({ args: ['--no-sandbox'] });` is used and Heroku's Linux box requires additional dependencies to be installed which can be done by the command `heroku buildpacks:add jontewks/puppeteer`.
+
+## Notes - Issues with Serverless
+
+This API will be difficult to get working with serverless enviroments, especially AWS lambdas - this is primarily due to Puppeteer which is quite a large package (definitly hitting the AWS lambda limit of 50MB). Unfortunatly without Puppeteer the results of the link previews get severely degraded. See [Running Puppeteer on AWS Lambda](https://github.com/puppeteer/puppeteer/blob/main/docs/troubleshooting.md#running-puppeteer-on-aws-lambda) for further info.
