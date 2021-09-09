@@ -1,9 +1,9 @@
 import { Method } from "axios";
 import psl from "psl";
 
-import api from "../lib/api";
+import api from "./api";
 
-import { extractHostname } from ".";
+import { extractHostname } from "../utils";
 
 export const getImageSearchString = (title: string, url: string, siteName?: string) => {
   

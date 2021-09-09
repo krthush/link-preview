@@ -30,18 +30,13 @@ export default function Home() {
         <meta name="description" content="A simple API site for getting link preview data." />
         <link rel="icon" href="/favicon.ico" />
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />        
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css"/>
       </Head>
 
       <style jsx>{`
         .main {
           padding: 3rem 0;
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
         }
         .footer {
           width: 100%;
@@ -51,7 +46,6 @@ export default function Home() {
           justify-content: center;
           align-items: center;
         }
-        
         .footer a {
           display: flex;
           justify-content: center;
@@ -67,15 +61,18 @@ export default function Home() {
           Works with multiple fallbacks, such as stealth emulation of a browser + fetching images by search. <br/>
           API built on Nextjs, but can be easily used in any Node.js enviroment.
         </p>
+        <h2>Try it out!</h2>
+          <input type="text" name="link" placeholder="https://www.youtube.com/"/>
+          <input type="submit" value="Submit"/>
         <h2>GET request to <code>/api/link-preview?url=</code></h2>
         <p>
-          Requires "url" parameter to be <b><u>base64 encoded</u></b> url to fetch link preview <br/><br/>
-          Optional boolean parameters "stealth", "search", "validate" can be used
+          Requires "url" parameter to be <b><u>base64 encoded</u></b> url to fetch link preview. <br/><br/>
+          Optional boolean parameters "stealth", "search", "validate" can be used:
         </p>
-        <ul>
+        <ul style={{paddingInlineStart:20}}>
           <li>"stealth" - includes stealth browser emulation (longer fetch but very accurate results)</li>
           <li>"search" - includes bing search images (longer fetch but multiple images)</li>
-          <li>"validate" - provides a "top" image that is validated (longer fetch but image src exists and loads)</li>
+          <li>"validate" - includes "top" image that is validated (longer fetch but ensures image src exists and loads)</li>
         </ul>
         <h2>Response format</h2>
         <p>

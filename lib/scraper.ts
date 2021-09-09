@@ -2,7 +2,7 @@ import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import cheerio from 'cheerio';
 
-import api from "../lib/api";
+import api from "./api";
 
 export interface SiteData {
   url: string
