@@ -4,23 +4,23 @@ import Image from 'next/image';
 import LinkPreview from '../components/LinkPreview';
 
 const responseFormat = `{
-  success: boolean
+  success: boolean,
   result?: {
     siteData?: {
-      url: string
-      title: string
-      favicon?: string
-      description?: string
-      image?: string
-      author?: string
-      siteName?: string
+      url: string,
+      title: string,
+      favicon?: string,
+      description?: string,
+      image?: string,
+      author?: string,
+      siteName?: string,
       largestImage?: string
     },
     imageSearch?: string,
     imageResults?: Array<string>,
     topImage?: string
-  }
-  error?: any
+  },
+  error?: any,
   errors?: Array<any>
 }`;
 
