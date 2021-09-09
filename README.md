@@ -1,10 +1,12 @@
 ## Link Preview
 
-A simple API site for getting link preview data.
+A simple API for getting link preview data.
 
 Works with multiple fallbacks, such as stealth emulation of a browser + fetching images by search.
 
-## [Demo Site](https://favorited-link-preview.herokuapp.com/)
+API built on [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app). Can be easily used in any other Node.js enviroments (NOT serverless - see [serverless issues](#serverless-issues)).
+
+## [Demo - Try it out!](https://favorited-link-preview.herokuapp.com/)
 
 ## Usage
 
@@ -17,8 +19,6 @@ Optional boolean parameters "stealth", "search", "validate" can be used:
 1. "stealth" - includes stealth browser emulation (longer fetch but very accurate results)
 2. "search" - includes bing search images (longer fetch but multiple images)
 3. "validate" - includes "top" image that is validated (longer fetch but ensures image src exists and loads)
-
-API built on [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app). Can be easily used in any other Node.js enviroments (NOT serverless - see [serverless issues](#serverless-issues)).
 
 For Bing Search to work you will need the following enviroment variable: `AZURE_BING_SEARCH_KEY`, see [Bing Image Search API](https://www.microsoft.com/en-us/bing/apis/bing-image-search-api).
 
@@ -112,20 +112,9 @@ npm run dev
 yarn dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the landing page. 
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
-
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed in the `pages/api` directory which is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
-
-## Next.js - Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+Link preview route should work on [http://localhost:3000/api/link-preview?url=...](http://localhost:3000/api/link-preview?url=...)
 
 ## Heroku - Deploy to production in 5 minutes
 
