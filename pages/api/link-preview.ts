@@ -196,12 +196,6 @@ const getTopImage = async (imageResults: Array<string>, siteDate?: SiteData) => 
         return siteDate.image;
       }
     }
-    // Then check first bing search result from title
-    if (imageResults[0]) {
-      if (await checkIfValidImageUrl(imageResults[0])) {
-        return imageResults[0];
-      }
-    }
     // Then check largest image from site
     if (siteDate.largestImage) {
       if (await checkIfValidImageUrl(siteDate.largestImage)) {
