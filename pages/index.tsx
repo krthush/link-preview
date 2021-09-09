@@ -61,7 +61,7 @@ export default function Home() {
         <h2>A simple open source API for getting link preview data</h2>
         <p>
           <b><u>Near perfect</u></b> results with multiple fallbacks: stealth emulation of a browser &amp; fetching images by search. <br/><br/>
-          API built on Nextjs, but can be easily used in any Node.js enviroment (not serverless).
+          API built on Nextjs, but can be easily used in any Node.js enviroment (NOT serverless).
         </p>
         <h2>Try it out!</h2>
         <LinkPreview/>

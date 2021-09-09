@@ -14,7 +14,7 @@ Optional boolean parameters "stealth", "search", "validate" can be used:
 2. "search" - includes bing search images (longer fetch but multiple images)
 3. "validate" - includes "top" image that is validated (longer fetch but ensures image src exists and loads)
 
-API built on [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app). Can be easily used in any other Node.js enviroments that when NOT hosted serverless - see notes.
+API built on [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app). Can be easily used in any other Node.js enviroments (NOT serverless - see notes).
 
 ## Example Link Preview
 
