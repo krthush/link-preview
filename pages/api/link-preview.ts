@@ -126,7 +126,7 @@ const getLinkPreviewData = async (targetUrl: string, stealth?: boolean, search?:
   const scrapedSite = await scrapeSite(targetUrl, stealth);
   errors.push(scrapedSite.errors);
 
-  if (scrapedSite.data) {
+  if (scrapedSite.data && scrapedSite.data.title) {
     if (/\S/.test(scrapedSite.data.title) && search !== false) {
       // Get search images specific to given url/link
       imageSearchString = getImageSearchString(scrapedSite.data.title, scrapedSite.data.url, scrapedSite.data.siteName);
