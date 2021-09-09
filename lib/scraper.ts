@@ -3,6 +3,7 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import AdblockerPlugin  from 'puppeteer-extra-plugin-adblocker';
 import cheerio from 'cheerio';
 import axios from 'axios';
+import UserAgent from 'user-agents';
 
 export interface SiteData {
   url: string
@@ -127,6 +128,11 @@ const stealthScrapeUrl = async (url: string) => {
   await puppeteer.use(StealthPlugin()).use(AdblockerPlugin({ blockTrackers: true })).launch({ args: ['--no-sandbox'] }).then(async browser => {
 
     const page = await browser.newPage();
+
+    // Set user agent for additional stealth, see https://github.com/berstend/puppeteer-extra/issues/155
+    const userAgent = new UserAgent();
+    await page.setUserAgent(userAgent.toString());
+
     await page.goto(url);
 
     html = await page.evaluate(() => document.querySelector('*')?.outerHTML);

@@ -19,11 +19,13 @@
     "puppeteer-extra-plugin-adblocker": "^2.11.11",
     "puppeteer-extra-plugin-stealth": "^2.7.8",
     "react": "17.0.2",
-    "react-dom": "17.0.2"
+    "react-dom": "17.0.2",
+    "user-agents": "^1.0.769"
   },
   "devDependencies": {
     "@types/psl": "^1.1.0",
     "@types/react": "17.0.20",
+    "@types/user-agents": "^1.0.2",
     "typescript": "4.4.2"
   }
 }
