@@ -1,8 +1,38 @@
+import { Method } from "axios";
 import { useState } from "react";
+import api from "../lib/api";
 
 const LinkPreview = () => {
 
+  const [link, setLink] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [image, setImage] = useState("");
+
+  const getLinkPreview = async () => {
+    setLoaded(false);
+    setLoading(true);
+    const encodedUrl = window.btoa(encodeURIComponent(link));
+    const config = {
+      url: `/link-preview?url=${encodedUrl}`,
+      method: 'GET' as Method,
+    }
+    try {
+      const res = await api.request(config);
+      console.log(res);
+      setTitle(res.data.result.siteData.title);
+      setDescription(res.data.result.siteData.description);
+      setImage(res.data.result.topImage);
+      setLoading(false);
+      setLoaded(true);
+    } catch (err) {
+      setLoading(false);
+      console.log(err);
+    }
+  }
 
   return (
     <>
@@ -27,15 +57,15 @@ const LinkPreview = () => {
         }
       `}</style>
       <div style={{display:"inline-block", width:"100%"}}>
-        <input style={{display:"inline", width:"80%"}} type="text" name="link" placeholder="https://www.youtube.com/"/>
-        <input style={{display:"inline"}} type="submit" value="Preview"/>
+        <input style={{display:"inline", width:"80%"}} type="text" name="link" placeholder="https://www.youtube.com/" onChange={(e) => setLink(e.target.value)}/>
+        <input style={{display:"inline"}} type="submit" value="Preview" onClick={getLinkPreview}/>
       </div>
       <div style={{display:"flex", alignItems:"center", width:"100%", justifyContent:"center", margin:"1rem 0"}}>
-        {!loading &&
+        {loaded &&
           <div style={{display:"flex", maxWidth: "300px", flexDirection:"column", backgroundColor:"rgba(0, 0, 0, 0.5)", borderRadius:"5px"}}>
-            <h3 style={{padding:"1rem", margin:0}}>Image title</h3>
-            <img style={{padding:"1rem",}} src="https://placekitten.com/408/287" alt="Preview image"/>
-            <span style={{padding:"1rem"}}>Lorem ipsum dolor sit amet consectetur adipisicing elit. Officia praesentium debitis voluptatibus cumque, minima voluptate eligendi blanditiis consequuntur quo cum non nulla totam sapiente, tempore quas accusantium maxime commodi neque.</span>
+            <h3 style={{padding:"1rem", margin:0}}>{title}</h3>
+            <img style={{padding:"1rem",}} src={image} alt="Preview image"/>
+            <span style={{padding:"1rem"}}>{description}</span>
           </div>
         }
         {loading &&

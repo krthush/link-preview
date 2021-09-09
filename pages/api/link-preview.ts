@@ -124,6 +124,7 @@ const getLinkPreviewData = async (targetUrl: string, stealth?: boolean, search?:
 
   // Scraped given url/link to get site data
   const scrapedSite = await scrapeSite(targetUrl, stealth);
+  errors.push(scrapedSite.errors);
 
   if (scrapedSite.data) {
     if (/\S/.test(scrapedSite.data.title) && search !== false) {
@@ -135,13 +136,14 @@ const getLinkPreviewData = async (targetUrl: string, stealth?: boolean, search?:
         // Add in some of the search images for domain name
         imageUrls = mergeImageUrls(imageUrls, domainNameImageUrls);
         return {
+          errors: errors,
+          success: true,
           result: {
             siteData: scrapedSite.data,
             imageSearch: imageSearchString,
             imageResults: imageUrls,
             topImage: ((validate !== false) ? await getTopImage(imageUrls, scrapedSite.data) : undefined)
           },
-          success: true
         }
       } else {
         // Fallback to just show domain search images if they exist and any errors
@@ -172,7 +174,6 @@ const getLinkPreviewData = async (targetUrl: string, stealth?: boolean, search?:
     }
   } else {
     // Fallback to just show domain search images if they exist and any errors
-    errors.push(scrapedSite.errors);
     return {
       errors: errors,
       success: true,
@@ -189,17 +190,26 @@ const getLinkPreviewData = async (targetUrl: string, stealth?: boolean, search?:
 // Get the "best" image i.e. valid image from results
 const getTopImage = async (imageResults: Array<string>, siteDate?: SiteData) => {
   if (siteDate) {
+    // First check if there is site image from meta tags
     if (siteDate.image) {
       if (await checkIfValidImageUrl(siteDate.image)) {
         return siteDate.image;
       }
     }
+    // Then check first bing search result from title
+    if (imageResults[0]) {
+      if (await checkIfValidImageUrl(imageResults[0])) {
+        return imageResults[0];
+      }
+    }
+    // Then check largest image from site
     if (siteDate.largestImage) {
       if (await checkIfValidImageUrl(siteDate.largestImage)) {
         return siteDate.largestImage;
       }
     }
   }
+  // Iterate through bing search results for at least some image
   for (const imageUrl of imageResults) {
     if (await checkIfValidImageUrl(imageUrl)) {
       return imageUrl;

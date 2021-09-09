@@ -58,13 +58,14 @@ export default function Home() {
 
       <main className="main">
         <h1>Welcome to <a href="/">Link Preview!</a></h1>
-        <h2>A simple API site for getting link preview data</h2>
+        <h2>A simple open source API for getting link preview data</h2>
         <p>
-          Works with multiple fallbacks, such as stealth emulation of a browser + fetching images by search. <br/>
+          <b><u>Near perfect</u></b> results with multiple fallbacks: stealth emulation of a browser &amp; fetching images by search. <br/><br/>
           API built on Nextjs, but can be easily used in any Node.js enviroment.
         </p>
         <h2>Try it out!</h2>
         <LinkPreview/>
+        <h2><a href="https://github.com/krthush/link-preview">Source code - Github</a></h2>
         <h2>GET request to <code>/api/link-preview?url=</code></h2>
         <p>
           Requires "url" parameter to be <b><u>base64 encoded</u></b> url to fetch link preview. <br/><br/>
@@ -88,7 +89,7 @@ export default function Home() {
           rel="noopener noreferrer"
           style={{color:"#fcb150"}}
         >
-          Made by{' '}
+          Made by {' '}
           <span style={{marginLeft: "5px", marginRight: "5px", height:24}}>
             <Image src="/icon.svg" alt="Favorited Logo" width={24} height={24}/>
           </span>

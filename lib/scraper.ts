@@ -58,6 +58,7 @@ export const scrapeSite = async (url: string, stealth?: boolean) => {
         console.log(err);
         errors.push(err);
         return {
+          data: tagData,
           errors: errors
         }
       }
@@ -79,6 +80,7 @@ export const scrapeSite = async (url: string, stealth?: boolean) => {
       console.log(err);
       errors.push(err);
       return {
+        data: tagData,
         errors: errors
       }
     }
@@ -123,8 +125,8 @@ const stealthScrapeUrl = async (url: string) => {
 
   await puppeteer.use(StealthPlugin()).launch().then(async browser => {
 
-    const page = await browser.newPage();;
-    await page.goto(url, { waitUntil: 'networkidle0' });
+    const page = await browser.newPage();
+    await page.goto(url);
 
     html = await page.evaluate(() => document.querySelector('*')?.outerHTML);
 
@@ -135,6 +137,7 @@ const stealthScrapeUrl = async (url: string) => {
         let best = null;
         let images = document.getElementsByTagName("img");
         for (let img of images as any) {
+          console.log(img.src);
           if (imageSize(img) > imageSize(best)) {
             best = img
           }
