@@ -1,8 +1,8 @@
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+import AdblockerPlugin  from 'puppeteer-extra-plugin-adblocker';
 import cheerio from 'cheerio';
-
-import api from "./api";
+import axios from 'axios';
 
 export interface SiteData {
   url: string
@@ -21,8 +21,9 @@ export const scrapeSite = async (url: string, stealth?: boolean) => {
   let errors: Array<any> = [];
   let tagData: SiteData | undefined;
 
+  // First try standard request using axios
   try {
-    const res = await api(encodeURI(decodeURI(url))); // Recode URI to avoid Error Request path contains unescaped characters
+    const res = await axios.get(url);
     html = res.data;
   } catch (err: any) {
     if (err.response) {
@@ -123,12 +124,14 @@ const stealthScrapeUrl = async (url: string) => {
   let html;
   let largestImage;
 
-  await puppeteer.use(StealthPlugin()).launch({ args: ['--no-sandbox'] }).then(async browser => {
+  await puppeteer.use(StealthPlugin()).use(AdblockerPlugin({ blockTrackers: true })).launch({ args: ['--no-sandbox'] }).then(async browser => {
 
     const page = await browser.newPage();
     await page.goto(url);
 
     html = await page.evaluate(() => document.querySelector('*')?.outerHTML);
+
+    console.log(html);
 
     // Check through images in site for largest image to use incase site image not found
     largestImage = await page.evaluate(() => {
