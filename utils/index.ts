@@ -41,3 +41,13 @@ export const extractHostname = (url: string) => {
 
   return hostname;
 }
+
+export const stringToBoolParam = (inputParam: string | Array<string>) => {
+  if (inputParam === 'true') {
+    return true;
+  } else if (inputParam === 'false') {
+    return false;
+  } else {
+    throw ('Parameter must be boolean string - "true" or "false"');
+  }
+}

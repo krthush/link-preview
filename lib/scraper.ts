@@ -85,7 +85,9 @@ const stealthScrapeUrl = async (url: string) => {
   let html;
   let largestImage;
 
-  await puppeteer.use(StealthPlugin()).use(AdblockerPlugin({ blockTrackers: true })).launch({
+  await puppeteer.use(StealthPlugin()).use(AdblockerPlugin({ 
+    blockTrackers: true 
+  })).launch({
     args: ['--no-sandbox'] 
   }).then(async browser => {
 
@@ -101,7 +103,6 @@ const stealthScrapeUrl = async (url: string) => {
 
     // Check through images in site for largest image to use incase site image not found
     largestImage = await page.evaluate(() => {
-
       const imageLargest = () => {
         let best = null;
         let images = document.getElementsByTagName("img");
@@ -113,23 +114,19 @@ const stealthScrapeUrl = async (url: string) => {
         }
         return best;
       }
-
       const imageSize = (img: HTMLImageElement) => {
         if (!img) {
           return 0;
         }
         return img.naturalWidth * img.naturalHeight;
       }
-
       const imageSrc = (img: HTMLImageElement) => {
         if (!img) {
           return null;
         }
         return img.src
       }
-
       return imageSrc(imageLargest()); 
-
     });
 
     await browser.close();

@@ -1,7 +1,5 @@
-import { Method } from "axios";
+import axios, { Method } from "axios";
 import psl from "psl";
-
-import api from "./api";
 
 import { extractHostname } from "../utils";
 
@@ -43,7 +41,7 @@ export const getBingImageSearch = async (search: string): Promise<{ results?: Ar
       }
     }
     try {
-      const res = await api.request(config);
+      const res = await axios.request(config);
       return {
         results: res.data.value
       }
