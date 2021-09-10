@@ -46,14 +46,14 @@ const getLinkPreviewParams = (req: NextApiRequest) => {
   let validateBool: boolean | undefined;
   let errors: Array<string> = [];
   if (url && isString(url)) {
-    const decodedUrl = decodeURIComponent(Buffer.from(url, 'base64').toString());
+    const decodedUrl = decodeURIComponent(url).toString();
     if (isValidWebUrl(decodedUrl)) {
       urlString = decodedUrl
     } else {
-      errors.push('Url string is invalid.');
+      errors.push('Url is invalid.');
     }
   } else {
-    errors.push('Url base64 encoded string required. Only non array string parameter allowed.');
+    errors.push('Url string required. Only non array string parameter allowed.');
   }
   if (stealth) try { stealthBool = stringToBoolParam(stealth) } catch (err) { errors.push(`Stealth ${err}`) };
   if (search) try { searchBool = stringToBoolParam(search) } catch (err) { errors.push(`Search ${err}`) };

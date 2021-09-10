@@ -15,7 +15,7 @@ const LinkPreview = () => {
   const getLinkPreview = async () => {
     setLoaded(false);
     setLoading(true);
-    const encodedUrl = window.btoa(encodeURIComponent(link));
+    const encodedUrl = encodeURIComponent(link);
     const config = {
       url: `/link-preview?url=${encodedUrl}`,
       method: 'GET' as Method,

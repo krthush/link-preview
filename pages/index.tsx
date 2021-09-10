@@ -68,8 +68,8 @@ export default function Home() {
         <h2><a href="https://github.com/krthush/link-preview">Source code - Github</a></h2>
         <h2>GET request to <code>/api/link-preview?url=</code></h2>
         <p>
-          Requires "url" parameter to be <b><u>base64 encoded</u></b> url to fetch link preview.<br/><br/>
-          Optional boolean parameters "stealth", "search", "validate" can be used:
+          Requires "url" parameter to fetch link preview.<br/><br/>
+          Optional boolean parameters "stealth", "search", "validate" (all default to true):
         </p>
         <ul style={{paddingInlineStart:20}}>
           <li>"stealth" - includes stealth browser emulation (longer fetch but very accurate results)</li>

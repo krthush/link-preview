@@ -12,9 +12,9 @@ API built on [Next.js](https://nextjs.org/) project bootstrapped with [`create-n
 
 For link previews, make GET requests to `/api/link-preview?url=`
 
-Requires "url" parameter to be base64 encoded string to fetch link preview.
+Requires "url" parameter to fetch link preview.
 
-Optional boolean parameters "stealth", "search", "validate" can be used:
+Optional boolean parameters "stealth", "search", "validate" (all default to true):
 
 1. "stealth" - includes stealth browser emulation (longer fetch but very accurate results)
 2. "search" - includes bing search images (longer fetch but multiple images)
