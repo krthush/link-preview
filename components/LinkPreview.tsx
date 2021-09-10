@@ -62,7 +62,7 @@ const LinkPreview = () => {
       </div>
       <div style={{display:"flex", alignItems:"center", width:"100%", justifyContent:"center", margin:"1rem 0"}}>
         {loaded &&
-          <div style={{display:"flex", maxWidth: "300px", flexDirection:"column", backgroundColor:"rgba(0, 0, 0, 0.2)", borderRadius:"5px"}}>
+          <div style={{display:"flex", maxWidth: "300px", flexDirection:"column", backgroundColor:"rgba(0, 0, 0, 0.1)", borderRadius:"5px"}}>
             <h3 style={{padding:"1rem 1rem 0 1rem", margin:0}}>{title}</h3>
             <img style={{padding:"1rem 1rem 0 1rem",}} src={image} alt="Preview image"/>
             <span style={{padding:"1rem"}}>{description}</span>
