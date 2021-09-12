@@ -1,5 +1,6 @@
 import { Method } from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
 import api from "../lib/api";
 
 const LinkPreview = () => {
@@ -12,27 +13,42 @@ const LinkPreview = () => {
   const [description, setDescription] = useState("");
   const [image, setImage] = useState("");
 
-  const getLinkPreview = async () => {
-    setLoaded(false);
-    setLoading(true);
-    const encodedUrl = encodeURIComponent(link);
-    const config = {
-      url: `/link-preview?url=${encodedUrl}`,
-      method: 'GET' as Method,
-    }
-    try {
-      const res = await api.request(config);
-      console.log(res);
-      setTitle(res.data.result.siteData.title);
-      setDescription(res.data.result.siteData.description);
-      setImage(res.data.result.topImage);
-      setLoading(false);
-      setLoaded(true);
-    } catch (err) {
-      setLoading(false);
-      console.log(err);
+  const getLinkPreview = async (url: string) => {
+    if (url) {
+      setLoaded(false);
+      setLoading(true);
+      const encodedUrl = encodeURIComponent(url);
+      const config = {
+        url: `/link-preview?url=${encodedUrl}`,
+        method: 'GET' as Method,
+      }
+      try {
+        const res = await api.request(config);
+        console.log(res);
+        setTitle(res.data.result.siteData.title);
+        setDescription(res.data.result.siteData.description);
+        setImage(res.data.result.topImage);
+        setLoading(false);
+        setLoaded(true);
+      } catch (err) {
+        setLoading(false);
+        console.log(err);
+      }
+    } else {
+      alert("Please enter a link for a preview!");
     }
   }
+
+  // Onload check query string if link provided to load
+  useEffect(() => {
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const url = urlParams.get('url');
+    if (url) {
+      setLink(url);
+      getLinkPreview(url);
+    }
+  }, []);
 
   return (
     <>
@@ -57,8 +73,8 @@ const LinkPreview = () => {
         }
       `}</style>
       <div style={{display:"inline-block", width:"100%"}}>
-        <input style={{display:"inline", width:"80%"}} type="text" name="link" placeholder="https://www.youtube.com/" onChange={(e) => setLink(e.target.value)}/>
-        <input style={{display:"inline"}} type="submit" value="Preview" onClick={getLinkPreview}/>
+        <input style={{display:"inline", width:"80%"}} type="text" name="link" placeholder="https://www.youtube.com/" value={link} onChange={(e) => setLink(e.target.value)}/>
+        <input style={{display:"inline"}} type="submit" value="Preview" onClick={() => getLinkPreview(link)}/>
       </div>
       <div style={{display:"flex", alignItems:"center", width:"100%", justifyContent:"center", margin:"1rem 0"}}>
         {loaded &&
