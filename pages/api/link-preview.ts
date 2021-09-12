@@ -5,16 +5,18 @@ import psl from 'psl';
 
 import { extractHostname, isString, isValidWebUrl, stringToBoolParam } from '../../utils';
 import { getBingImageSearch, getImageSearchString } from '../../lib/search';
-import { scrapeSite, SiteData } from '../../lib/scraper';
-import { getAmazonData, isAmazonSite } from '../../lib/amazon';
+import { scrapeSite, SiteData, ScrapeOptions } from '../../lib/scrape';
+
+import { getExceptionSiteData, ExtraData } from '../../utils/exceptions';
 
 interface ApiData {
   success: boolean
   result?: {
-    siteData?: SiteData,
-    imageSearch?: string,
-    imageResults?: Array<string>,
+    siteData?: SiteData
+    imageSearch?: string
+    imageResults?: Array<string>
     topImage?: string
+    extraData?: ExtraData
   }
   error?: any
   errors?: Array<any>
@@ -75,9 +77,22 @@ const getLinkPreviewData = async (url: string, stealth?: boolean, search?: boole
   // Default vars for api data result and errors
   let siteData: SiteData | undefined = undefined;
   let imageResults: Array<string> = [];
-  let imageSearchString;
+  let imageSearchString: string | undefined = undefined;
   let topImage: string | undefined = undefined;
+  let extraData: ExtraData | undefined = undefined;
   let errors: Array<any> = [];
+
+  // Default scraping options
+  let scrapeOptions: ScrapeOptions | undefined = {
+    scrape: true,
+    stealth: stealth
+  };
+
+  // Check exception sites - adjust scrape options and assign extra data if needed
+  // Currently this API contains exceptions for sites such Amazon, Twitter, etc.  
+  const exceptionData = await getExceptionSiteData(url, stealth);
+  if (exceptionData.scrapeOptions) scrapeOptions = exceptionData.scrapeOptions;
+  if (exceptionData.extraData) extraData = exceptionData.extraData;
 
   // Get search images for domain name
   let domainNameImageUrls: Array<string> = [];
@@ -107,34 +122,31 @@ const getLinkPreviewData = async (url: string, stealth?: boolean, search?: boole
     }
   }
 
-  // If amazon site, get amazon data using https://webservices.amazon.com/paapi5/documentation/
-  // if (isAmazonSite(url)) {
-  //   const amazonData = await getAmazonData(url);
-  // }
-
-  // Scrape given url/link to get site data
-  const scrapedSite = await scrapeSite(url, stealth);
-  errors.concat(scrapedSite.errors);
-
-  // Check scraped data and search data to construct api data result
-  if (scrapedSite.data && scrapedSite.data.title) {
-    siteData = scrapedSite.data;
-    if (validate !== false) topImage = await getTopImage(imageResults, scrapedSite.data);
-    // Ensure title is not empty string before bing search
-    if (/\S/.test(siteData.title) && search !== false) {
-      // Get search images specific to given url/link
-      imageSearchString = getImageSearchString(siteData.title, siteData.url, siteData.siteName);
-      const imageSearch = await getBingImageSearch(imageSearchString);
-      if (imageSearch.results) { 
-        const imageUrls = imageSearch.results.map((imageResult: { contentUrl: string; }) => imageResult.contentUrl);
-        // Add in some of the search images for domain name
-        imageResults = mergeImageUrls(imageUrls, domainNameImageUrls);
-      } else {
-        errors.push(imageSearch.error);
+  if (scrapeOptions.scrape) {
+    // Scrape given url/link to get site data
+    const scrapedSite = await scrapeSite(url, scrapeOptions);
+    errors.concat(scrapedSite.errors);
+  
+    // Check scraped data and search data to construct api data result
+    if (scrapedSite.data && scrapedSite.data.title) {
+      siteData = scrapedSite.data;
+      if (validate !== false) topImage = await getTopImage(imageResults, scrapedSite.data);
+      // Ensure title is not empty string before bing search
+      if (search !== false && siteData.title && /\S/.test(siteData.title)) {
+        // Get search images specific to given url/link
+        imageSearchString = getImageSearchString(siteData.title, siteData.url, siteData.siteName);
+        const imageSearch = await getBingImageSearch(imageSearchString);
+        if (imageSearch.results) { 
+          const imageUrls = imageSearch.results.map((imageResult: { contentUrl: string; }) => imageResult.contentUrl);
+          // Add in some of the search images for domain name
+          imageResults = mergeImageUrls(imageUrls, domainNameImageUrls);
+        } else {
+          errors.push(imageSearch.error);
+        }
       }
+    } else {
+      if (validate !== false) topImage = await getTopImage(imageResults);
     }
-  } else {
-    if (validate !== false) topImage = await getTopImage(imageResults);
   }
 
   return {
@@ -144,7 +156,8 @@ const getLinkPreviewData = async (url: string, stealth?: boolean, search?: boole
       siteData: siteData,
       imageSearch: imageSearchString,
       imageResults: imageResults,
-      topImage: topImage
+      topImage: topImage,
+      extraData: extraData
     }
   }
 

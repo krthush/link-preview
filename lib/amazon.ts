@@ -1,4 +1,8 @@
-const amazonUrlStarts = [
+export interface AmazonData {
+
+};
+
+export const amazonUrls = [
   "https://amazon.",
   "http://amazon.",
   "https://www.amazon.",
@@ -8,26 +12,6 @@ const amazonUrlStarts = [
   "https://www.amzn.",
   "http://www.amzn."
 ]
-
-export const isAmazonSite = (url: string) => {
-  let isAmazonSite = false;
-  amazonUrlStarts.forEach((amazonUrlStart) => {
-    if (url.startsWith(amazonUrlStart)) {
-      isAmazonSite = true;
-    }
-  });
-  return isAmazonSite;
-}
-
-export const getAmazonData = async (url: string) => {
-  const ASIN = getAmazonASIN(url);
-  if (ASIN) {
-    console.log(ASIN);
-    // Now use ASIN with amazon PAAPI SDK to find product data - title, description, image, pricing, etc.
-  } else {
-    throw Error("Amazon ASIN not found.");
-  }
-}
 
 const getAmazonASIN = (url: string) => {
   const fullASINRegex = /(?:dp|o|gp|-|gp\/product|\/ASIN|gp\/offer-listing|gp\/product\/images|gp\/aw\/d)\/(B[0-9]{2}[0-9A-Z]{7}|[0-9]{9}(?:X|[0-9]))/g;
@@ -42,5 +26,17 @@ const getAmazonASIN = (url: string) => {
     }
   } else {
     return undefined;
+  }
+}
+
+export const getAmazonData = async (url: string) => {
+  let amazonData: AmazonData = {};
+  const ASIN = getAmazonASIN(url);
+  if (ASIN) {
+    console.log(ASIN);
+    // TODO: Now use ASIN with amazon PAAPI SDK to find product data - title, description, image, pricing, etc.
+    return amazonData;
+  } else {
+    throw Error("Amazon ASIN not found.");
   }
 }
