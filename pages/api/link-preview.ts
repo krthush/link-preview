@@ -3,6 +3,8 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import axios from 'axios';
 import psl from 'psl';
 
+import withAllowCORS from '../../middleware/withAllowCORS';
+
 import { extractHostname, isString, isValidWebUrl, stringToBoolParam } from '../../utils';
 import { getBingImageSearch, getImageSearchString } from '../../lib/search';
 import { scrapeSite, SiteData, ScrapeOptions } from '../../lib/scrape';
@@ -216,4 +218,4 @@ const mergeImageUrls = (array1:Array<string>, array2:Array<string>) => {
   return array1;
 }
 
-export default handler;
+export default withAllowCORS(handler);
