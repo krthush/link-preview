@@ -37,6 +37,6 @@ export const getAmazonData = async (url: string) => {
     // TODO: Now use ASIN with amazon PAAPI SDK to find product data - title, description, image, pricing, etc.
     return amazonData;
   } else {
-    throw Error("Amazon ASIN not found.");
+    return amazonData;
   }
 }
