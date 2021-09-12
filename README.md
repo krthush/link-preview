@@ -8,6 +8,8 @@ API built on [Next.js](https://nextjs.org/) project bootstrapped with [`create-n
 
 ## [Demo - Try it out!](https://favorited-link-preview.herokuapp.com/)
 
+## [Article - Code Explained](https://krthush.medium.com/how-to-create-link-previews-like-social-media-apps-open-source-api-45797d758200)
+
 ## Usage
 
 For link previews, make GET requests to `/api/link-preview?url=`
@@ -26,9 +28,7 @@ For Bing Search to work you will need the following enviroment variable: `AZURE_
 
 Link preview for [https://www.youtube.com/](https://www.youtube.com/)
 
-Base64 encoded url: aHR0cHM6Ly93d3cueW91dHViZS5jb20v
-
-Preview route: [http://localhost:3000/api/link-preview?url=aHR0cHM6Ly93d3cueW91dHViZS5jb20v](http://localhost:3000/api/link-preview?url=aHR0cHM6Ly93d3cueW91dHViZS5jb20v)
+Preview route: [https://favorited-link-preview.herokuapp.com/api/link-preview?url=https://www.youtube.com/](https://favorited-link-preview.herokuapp.com/api/link-preview?url=https://www.youtube.com/)
 
 Result:
 
