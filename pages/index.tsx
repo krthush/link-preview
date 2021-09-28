@@ -91,9 +91,9 @@ export default function Home() {
         >
           Made by {' '}
           <span style={{marginLeft: "5px", marginRight: "5px", height:24}}>
-            <Image src="/icon.svg" alt="Favorited Logo" width={24} height={24}/>
+            <Image src="/icon.svg" alt="Faved Logo" width={24} height={24}/>
           </span>
-          <span style={{color:"#fcb150", fontSize:"1.2rem"}}><b>Favorited</b></span>
+          <span style={{color:"#fcb150", fontSize:"1.2rem"}}><b>Faved</b></span>
         </a>
       </footer>
       
