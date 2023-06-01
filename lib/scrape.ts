@@ -100,7 +100,7 @@ const stealthScrapeUrl = async (url: string, options?: ScrapeOptions) => {
   await puppeteer.use(StealthPlugin()).use(AdblockerPlugin({ 
     blockTrackers: true 
   })).launch({
-    args: ['--no-sandbox'] 
+    args: ['--no-sandbox',"--single-process"] 
   }).then(async browser => {
 
     const page = await browser.newPage();
