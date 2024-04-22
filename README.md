@@ -24,6 +24,8 @@ Optional boolean parameters "stealth", "search", "validate" (all default to true
 
 For Bing Search to work you will need the following enviroment variable: `AZURE_BING_SEARCH_KEY`, see [Bing Image Search API](https://www.microsoft.com/en-us/bing/apis/bing-image-search-api).
 
+PLEASE NOTE: To have better stealth, the project uses [BrightData's Scraping Browser](https://brightdata.com/products/scraping-browser), this will require the following enviroment variables: `BRIGHT_DATA_USERNAME` and `BRIGHT_DATA_PASSWORD`, see [here](https://docs.brightdata.com/scraping-automation/scraping-browser/introduction) for how to set this up.
+
 ## Example Link Preview
 
 Link preview for [https://www.youtube.com/](https://www.youtube.com/)
@@ -96,7 +98,7 @@ Result:
 
 ## Next.js - Getting Started
 
-Download/Fork project then install packages: 
+Download/Fork project then install packages:
 
 ```bash
 npm install
@@ -112,7 +114,7 @@ npm run dev
 yarn dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the landing page. 
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the landing page.
 
 Link preview route should work on [http://localhost:3000/api/link-preview?url=...](http://localhost:3000/api/link-preview?url=...)
 

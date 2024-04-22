@@ -6,6 +6,8 @@ import cheerio from 'cheerio';
 import axios from 'axios';
 import UserAgent from 'user-agents';
 
+const AUTH = `${process.env.BRIGHT_DATA_USERNAME}:${process.env.BRIGHT_DATA_PASSWORD}`;
+
 export interface SiteData {
   url: string
   title?: string
@@ -99,8 +101,8 @@ const stealthScrapeUrl = async (url: string, options?: ScrapeOptions) => {
 
   await puppeteer.use(StealthPlugin()).use(AdblockerPlugin({ 
     blockTrackers: true 
-  })).launch({
-    args: ['--no-sandbox',"--single-process"] 
+  })).connect({
+    browserWSEndpoint: `wss://${AUTH}@brd.superproxy.io:9222`,
   }).then(async browser => {
 
     const page = await browser.newPage();
