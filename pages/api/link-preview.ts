@@ -30,8 +30,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<ApiData>) => {
     const { url, stealth, search, validate } = params.data;
     switch (req.method) {
       case 'GET':
-        const linkPreviewData = await getLinkPreviewData(url, stealth, search, validate);
-        return res.status(200).json(linkPreviewData);
+        try {
+          const linkPreviewData = await getLinkPreviewData(url, stealth, search, validate);
+          return res.status(200).json(linkPreviewData);
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({ success: false, error: error });
+        }
       default:
         return res.status(404).json({ success: false, error: `Method ${req.method} not allowed` });
     }
