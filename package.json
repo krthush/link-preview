@@ -14,10 +14,10 @@
     "next": "^13.5.3",
     "paapi5-nodejs-sdk": "^1.1.0",
     "psl": "^1.9.0",
-    "puppeteer": "^21.3.6",
-    "puppeteer-extra": "3.3.6",
+    "puppeteer": "^21.11.0",
+    "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-adblocker": "2.13.6",
-    "puppeteer-extra-plugin-stealth": "2.11.2",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "user-agents": "^1.0.769"
